@@ -12,7 +12,11 @@ const passwordRegex = {
 };
 
 const employee = require("../database/employee");
-const { hashPassword } = require("../helpers/authHelper");
+const {
+  hashPassword,
+  anonymousUniqueName,
+  comparePassword,
+} = require("../helpers/authHelper");
 
 // signup endpoint
 const createAccount = async (req, res) => {
@@ -95,6 +99,8 @@ const createAccount = async (req, res) => {
 
     const hashedPassword = await hashPassword(password);
 
+    const anonymous_id = await anonymousUniqueName();
+
     const employeeUser = new employee({
       full_name,
       department,
@@ -102,11 +108,15 @@ const createAccount = async (req, res) => {
       phone_number,
       password: hashedPassword,
       training_status,
+      anonymous_id,
     });
 
     await employeeUser.save();
 
-    return res.status(201).json({ message: "User created successfully." });
+    return res.status(201).json({
+      message: "User created successfully.",
+      anonymous_id: employeeUser.anonymous_id,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error in registration API." });
@@ -123,7 +133,23 @@ const Login = async (req, res) => {
     if (!password?.trim()) {
       return res.status(400).json({ error: "Password is required." });
     }
-    // wrong email and password later on with DB
+
+    const existingEmployee = await employee.findOne({ email });
+    if (!existingEmployee) {
+      return res.status(400).json({ error: "User has not been found." });
+    }
+
+    const passwordMatch = await comparePassword(
+      password,
+      existingEmployee.password
+    );
+    if (!passwordMatch) {
+      return res.status(400).json({ error: "Incorrect email or password." });
+    }
+    //success
+    return res.status(201).json({
+      message: `Login successful, welcome ${existingEmployee.anonymous_id}`,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error in login API." });

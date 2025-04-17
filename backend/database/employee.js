@@ -38,6 +38,12 @@ const employeeSchema = new mongoose.Schema(
       required: true,
       enum: ["3-6 months", "6-9 months", "+1 year", "Never"],
     },
+
+    anonymous_id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
   },
   { timestamps: true }
 );
