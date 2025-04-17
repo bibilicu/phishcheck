@@ -12,6 +12,7 @@ const passwordRegex = {
 };
 
 const employee = require("../database/employee");
+const { hashPassword } = require("../helpers/authHelper");
 
 // signup endpoint
 const createAccount = async (req, res) => {
@@ -91,6 +92,20 @@ const createAccount = async (req, res) => {
         .status(500)
         .json({ error: "This user has already been registered." });
     }
+
+    const hashedPassword = await hashPassword(password);
+
+    const employeeUser = new employee({
+      full_name,
+      department,
+      email,
+      phone_number,
+      password: hashedPassword,
+      training_status,
+    });
+
+    await employeeUser.save();
+
     return res.status(201).json({ message: "User created successfully." });
   } catch (error) {
     console.log(error);
@@ -106,7 +121,7 @@ const Login = async (req, res) => {
       return res.status(400).json({ error: "Email is required." });
     }
     if (!password?.trim()) {
-      return res.status(400).json({ error: "Phone number is required." });
+      return res.status(400).json({ error: "Password is required." });
     }
     // wrong email and password later on with DB
   } catch (error) {
