@@ -5,6 +5,7 @@ const {
   colors,
 } = require("unique-names-generator");
 const employee = require("../database/employee");
+const nodemailer = require("nodemailer");
 
 const hashPassword = (password) => {
   return new Promise((resolve, reject) => {
@@ -53,4 +54,20 @@ const anonymousUniqueName = async () => {
   }
 };
 
-module.exports = { hashPassword, comparePassword, anonymousUniqueName };
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.email",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "username",
+    pass: "password",
+  },
+});
+
+// emails in the appController
+module.exports = {
+  hashPassword,
+  comparePassword,
+  anonymousUniqueName,
+  transporter,
+};

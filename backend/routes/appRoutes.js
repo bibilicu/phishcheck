@@ -1,19 +1,22 @@
 const express = require("express");
 
 const router = express.Router();
-const { createAccount } = require("../controllers/appController");
-const { Login } = require("../controllers/appController");
+const {
+  createAccount,
+  Login,
+  authenticate,
+} = require("../controllers/appController");
 
 // routes
 router.post("/create-account", createAccount);
 
 router.post("/login", Login);
 
-// router.get("", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: "Welcome to PhishCheck! Hi there!",
-//   });
-// });
+// for testing purposes
+router.get("/home", authenticate, (req, res) => {
+  res
+    .status(200)
+    .json({ message: `Hello, ${req.user.email}!`, user: req.user });
+});
 
 module.exports = router;

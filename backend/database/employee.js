@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 
 const employeeSchema = new mongoose.Schema(
   {
@@ -28,11 +29,6 @@ const employeeSchema = new mongoose.Schema(
       max: 15,
     },
 
-    phone_number: {
-      type: Number,
-      required: true,
-    },
-
     training_status: {
       type: String,
       required: true,
@@ -44,8 +40,32 @@ const employeeSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    email_verification_code: String,
+    email_verification_expires: Date,
   },
   { timestamps: true }
 );
+
+employeeSchema.methods.generateToken = function () {
+  try {
+    const token = jwt.sign(
+      {
+        userId: this._id.toString(),
+        email: this.email,
+      },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+    );
+    return token;
+  } catch (error) {
+    console.log("JWT generation error: ", error);
+    return null;
+  }
+};
 
 module.exports = mongoose.model("Employee", employeeSchema);

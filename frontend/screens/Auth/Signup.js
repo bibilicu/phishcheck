@@ -17,8 +17,8 @@ const Signup = ({ navigation }) => {
   const [full_name, setFullName] = useState("");
   const [department, setDepartment] = useState("");
   const [email, setEmail] = useState("");
-  const [phone_number, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm_password, setConfirmPassword] = useState("");
   const [training_status, setTrainingStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocus, setIsFocus] = useState(false);
@@ -37,15 +37,15 @@ const Signup = ({ navigation }) => {
         !full_name ||
         !department ||
         !email ||
-        !phone_number ||
         !password ||
+        !confirm_password ||
         !training_status
       ) {
         setIsLoading(false);
         return alert("Please fill in the fields.");
       }
       setIsLoading(false);
-      navigation.navigate("Home");
+      navigation.navigate("EmailVerify");
     } catch (error) {
       setIsLoading(false);
       alert(error);
@@ -78,17 +78,19 @@ const Signup = ({ navigation }) => {
       ></TextInput>
       <TextInput
         style={styles.input}
-        value={phone_number}
-        placeholder=" Phone Number"
-        onChangeText={(text) => setPhoneNumber(text)}
-      ></TextInput>
-      <TextInput
-        style={styles.input}
         value={password}
         placeholder="Password"
         autoCapitalize="none"
         secureTextEntry={true}
         onChangeText={(text) => setPassword(text)}
+      ></TextInput>
+      <TextInput
+        style={styles.input}
+        value={confirm_password}
+        placeholder="Confirm your password"
+        autoCapitalize="none"
+        secureTextEntry={true}
+        onChangeText={(text) => setConfirmPassword(text)}
       ></TextInput>
       <Dropdown
         style={[styles.dropdown, isFocus && { borderColor: "blue" }]}

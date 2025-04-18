@@ -57,17 +57,29 @@ const Login = ({ navigation }) => {
         <ActivityIndicator size="large" color="#000ff" />
       ) : (
         <>
-          <Button
-            title="Log in"
-            onPress={() => navigation.navigate("Home")}
-          ></Button>
+          <Button title="Log in" onPress={handleSubmit}></Button>
         </>
       )}
+      <Separator />
+      <Button
+        title="Back"
+        onPress={() => navigation.navigate("Welcome")}
+      ></Button>
       <Separator />
       <Text style={styles.phrase}>
         Are you new here?{" "}
         <Text style={styles.link} onPress={() => navigation.navigate("Signup")}>
           Create an account!
+        </Text>
+        {""}
+      </Text>
+      <Text style={styles.phrase}>
+        Forgot your password?{" "}
+        <Text
+          style={styles.link}
+          onPress={() => navigation.navigate("EmailPass")}
+        >
+          Restore it here!
         </Text>
         {""}
       </Text>
