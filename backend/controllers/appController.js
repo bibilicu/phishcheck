@@ -67,7 +67,7 @@ const sendCode = async (req, res) => {
     );
 
     await transporter.sendMail({
-      from: "username",
+      from: "filofteabi@gmail.com",
       to: email,
       subject: "Password Reset Code",
       html: `<p>Hello ${employeeUser.anonymous_id},</p></br>
@@ -183,21 +183,18 @@ const createAccount = async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: "username",
+      from: "filofteabi@gmail.com",
       to: email,
-      subject: "Password Reset Code",
+      subject: "Account Verification",
       html: `<p>Hello ${employeeUser.anonymous_id},</p></br>
-      <p>Here is your password reset code: <strong>${resetCode}</strong></p>
-      <p>The code is available for only 15 minutes.</p></br>
+      <p>Here is your verification code: <strong>${verificationCode}</strong></p>
+      <p>The code is available for 1 hour.</p></br>
       <p>Best regards, the PhishCheck team.</p>`,
     });
 
     await employeeUser.save();
-    // const token = employeeUser.generateToken();
     return res.status(201).json({
       message: "User created successfully. Please verify your email",
-      // token,
-      // anonymous_id: employeeUser.anonymous_id,
     });
   } catch (error) {
     console.log(error);
@@ -209,7 +206,7 @@ const verifyEmail = async (req, res) => {
   const { email, verificationCode } = req.body;
 
   const employeeUser = await employee.findOne({ email });
-  if (!user) {
+  if (!employeeUser) {
     return res.status(404).json({ error: "User not found." });
   }
 
@@ -227,7 +224,7 @@ const verifyEmail = async (req, res) => {
   await employeeUser.save();
 
   return res.status(201).json({
-    message: "User created successfully. Please verify your email",
+    message: "User verified successfully.",
   });
 };
 
@@ -284,6 +281,9 @@ const authenticate = async (req, res, next) => {
     res.status(401).send("Invalid or expired token.");
   }
 };
+
+//verifyCode for pass reset
+const verifyCode = () => {};
 
 // update password if forgotten
 const passwordReset = async (req, res) => {
@@ -349,6 +349,7 @@ module.exports = {
   authenticate,
   verifyEmail,
   sendCode,
+  verifyCode,
   passwordReset,
 };
 

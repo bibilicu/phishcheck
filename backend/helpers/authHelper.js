@@ -55,13 +55,15 @@ const anonymousUniqueName = async () => {
 };
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.email",
+  host: "smtp.gmail.com",
   port: 587,
   secure: false,
   auth: {
-    user: "username",
-    pass: "password",
+    user: "filofteabi@gmail.com",
+    pass: "nmdsybddiwbsyhia",
   },
+  logger: true,
+  debug: true,
 });
 
 // emails in the appController

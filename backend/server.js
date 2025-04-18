@@ -21,6 +21,14 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use("/api", routes);
 
+// const generateMailTransporter = () => {
+//   // What does the following output?
+//   console.log("Email:", process.env.SMTP_USER);
+//   console.log("Email Pass:", process.env.SMTP_PASS);
+// };
+
+// generateMailTransporter();
+
 // port
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server listening to ${PORT}...`));
