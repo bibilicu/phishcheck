@@ -282,13 +282,11 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-//verifyCode for pass reset
-const verifyCode = () => {};
-
 // update password if forgotten
 const passwordReset = async (req, res) => {
   try {
-    const { password, confirm_password } = req.body;
+    const { email, resetCode, password, confirm_password } = req.body;
+    const existingEmployee = await employee.findOne({ email });
     if (!password?.trim() || !confirm_password.trim()) {
       return res.status(400).json({ error: "Password is required." });
     }
@@ -327,12 +325,19 @@ const passwordReset = async (req, res) => {
       return res.status(400).json({ error: passwordError.join(" ") });
     }
 
+    if (!existingEmployee || existingEmployee.reset_code !== resetCode) {
+      return res.status(400).json({ error: "Invalid code." });
+    }
+
+    if (existingEmployee.reset_code_expires < new Date()) {
+      return res.status(400).json({ error: "The code has expired." });
+    }
+
     const hashedPassword = await hashPassword(password);
-
-    const updatePassword = await employee.updateOne({
-      password: hashedPassword,
-    });
-
+    (existingEmployee.password = hashedPassword),
+      (existingEmployee.reset_code = null),
+      (existingEmployee.reset_code_expires = null),
+      await existingEmployee.save();
     return res.status(200).json({
       message: "Password has been successfully reset. Please proceed to login.",
     });
@@ -349,7 +354,6 @@ module.exports = {
   authenticate,
   verifyEmail,
   sendCode,
-  verifyCode,
   passwordReset,
 };
 

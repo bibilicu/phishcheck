@@ -72,7 +72,7 @@ const Signup = ({ navigation }) => {
       <TextInput
         style={styles.input}
         value={email}
-        placeholder="Your business email"
+        placeholder="Business Email"
         autoCapitalize="none"
         onChangeText={(text) => setEmail(text)}
       ></TextInput>

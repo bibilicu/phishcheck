@@ -33,7 +33,17 @@ const ResetPassword = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.phrase}>Please introduce your new password</Text>
+      <Text style={styles.phrase}>
+        Please introduce the code sent to you and the new password
+      </Text>
+      <TextInput
+        style={styles.input}
+        value={code}
+        placeholder="The code received from email"
+        autoCapitalize="none"
+        secureTextEntry={true}
+        onChangeText={(text) => setCode(text)}
+      ></TextInput>
       <TextInput
         style={styles.input}
         value={password}

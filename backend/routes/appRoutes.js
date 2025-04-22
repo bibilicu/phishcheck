@@ -7,7 +7,6 @@ const {
   authenticate,
   verifyEmail,
   sendCode,
-  verifyCode,
   passwordReset,
 } = require("../controllers/appController");
 
@@ -26,8 +25,6 @@ router.get("/home", authenticate, (req, res) => {
 });
 
 router.post("/send-code", sendCode);
-
-router.post("/verify-code", verifyCode);
 
 router.post("/password-reset", passwordReset);
 

@@ -45,8 +45,12 @@ const employeeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // for account verification
     email_verification_code: String,
     email_verification_expires: Date,
+    // for password reset
+    reset_code: String,
+    reset_code_expires: Date,
   },
   { timestamps: true }
 );

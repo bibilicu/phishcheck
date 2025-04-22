@@ -6,7 +6,6 @@ import Signup from "./screens/Auth/Signup";
 import Home from "./screens/afterAuth/Home";
 import EmailVerify from "./screens/Auth/EmailVerify";
 import ResetPassword from "./screens/Auth/ResetPassword";
-import PassCode from "./screens/Auth/PassCode";
 import EmailPass from "./screens/Auth/EmailPass";
 
 const Stack = createNativeStackNavigator();
@@ -39,11 +38,6 @@ export default function App() {
           name="EmailPass"
           component={EmailPass}
           options={{ headerShown: false }} // email to receive code for password reset
-        />
-        <Stack.Screen
-          name="PassCode"
-          component={PassCode}
-          options={{ headerShown: false }} // introduce code to proceed to password reset
         />
         <Stack.Screen
           name="ResetPassword"
