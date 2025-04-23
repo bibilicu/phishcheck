@@ -1,15 +1,16 @@
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   ActivityIndicator,
-  TextInput,
+  Switch,
 } from "react-native";
-import React, { useState } from "react";
+import { Button, TextInput } from "react-native-paper";
+import React, { useState, useContext } from "react";
 import { Dropdown } from "react-native-element-dropdown";
-
-const Separator = () => <View style={styles.separator}></View>;
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from "../../context/authContext";
+import axios from "axios";
 
 // for tomorrow, complete functionality and validation
 
@@ -22,84 +23,130 @@ const Signup = ({ navigation }) => {
   const [training_status, setTrainingStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocus, setIsFocus] = useState(false);
+  const [error, setError] = useState({
+    full_name: "",
+    department: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    training_status: "",
+  });
+  const [state, setState] = useContext(AuthContext);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const data = [
+  const dataTraining = [
     { label: "3-6 months", value: "3-6 months" },
     { label: "6-9 months", value: "6-9 months" },
     { label: "+1 year", value: "+1 year" },
     { label: "Never", value: "Never" },
   ];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      if (
-        !full_name ||
-        !department ||
-        !email ||
-        !password ||
-        !confirm_password ||
-        !training_status
-      ) {
-        setIsLoading(false);
-        return alert("Please fill in the fields.");
-      }
-      setIsLoading(false);
+      const { data } = await axios.post("/create-account", {
+        full_name,
+        department,
+        email,
+        password,
+        confirm_password,
+        training_status,
+      });
+      setState(data);
+      await AsyncStorage.setItem("@auth", JSON.stringify(data));
+      alert(data && data.message);
       navigation.navigate("EmailVerify");
     } catch (error) {
       setIsLoading(false);
-      alert(error);
+      if (error.response && error.response.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Something went wrong, please try again.");
+      }
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text>Create your account here</Text>
+      <Text style={styles.title}>Create Account</Text>
       <TextInput
         style={styles.input}
         value={full_name}
-        placeholder="Full Name"
+        label="Full Name"
+        mode="outlined"
         autoCapitalize="none"
-        onChangeText={(text) => setFullName(text)}
+        onChangeText={(text) => {
+          setFullName(text);
+          setError((prev) => ({ ...prev, full_name: "" }));
+        }}
       ></TextInput>
+      {error.full_name ? (
+        <Text style={styles.errorMessage}>{error.full_name}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         value={department}
-        placeholder="Department (e.g. IT, HR, Finance)"
+        label="Department (e.g. IT, HR, Finance)"
+        mode="outlined"
         autoCapitalize="none"
-        onChangeText={(text) => setDepartment(text)}
+        onChangeText={(text) => {
+          setDepartment(text);
+          setError((prev) => ({ ...prev, department: "" }));
+        }}
       ></TextInput>
+      {error.department ? (
+        <Text style={styles.errorMessage}>{error.department}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         value={email}
-        placeholder="Business Email"
+        label="Business Email"
+        mode="outlined"
         autoCapitalize="none"
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={(text) => {
+          setEmail(text);
+          setError((prev) => ({ ...prev, email: "" }));
+        }}
       ></TextInput>
+      {error.email ? (
+        <Text style={styles.errorMessage}>{error.email}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         value={password}
-        placeholder="Password"
+        label="Password"
+        mode="outlined"
         autoCapitalize="none"
-        secureTextEntry={true}
-        onChangeText={(text) => setPassword(text)}
+        secureTextEntry={!showPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          setError((prev) => ({ ...prev, password: "" }));
+        }}
       ></TextInput>
+      {error.password ? (
+        <Text style={styles.errorMessage}>{error.password}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         value={confirm_password}
-        placeholder="Confirm your password"
+        label="Confirm your password"
+        mode="outlined"
         autoCapitalize="none"
-        secureTextEntry={true}
-        onChangeText={(text) => setConfirmPassword(text)}
+        secureTextEntry={!showPassword}
+        onChangeText={(text) => {
+          setConfirmPassword(text);
+          setError((prev) => ({ ...prev, confirm_password: "" }));
+        }}
       ></TextInput>
+      {error.confirm_password ? (
+        <Text style={styles.errorMessage}>{error.confirm_password}</Text>
+      ) : null}
       <Dropdown
-        style={[styles.dropdown, isFocus && { borderColor: "blue" }]}
+        style={[styles.dropdown, isFocus]}
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
         iconStyle={styles.iconStyle}
-        data={data}
-        search
+        data={dataTraining}
         maxHeight={300}
         labelField="label"
         valueField="value"
@@ -109,23 +156,40 @@ const Signup = ({ navigation }) => {
         onBlur={() => setIsFocus(false)}
         onChange={(item) => {
           setTrainingStatus(item.value);
+          setError((prev) => ({ ...prev, training_status }));
           setIsFocus(false);
         }}
       />
-      <Separator />
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#000ff" />
-      ) : (
-        <>
-          <Button title="Sign Up" onPress={handleSubmit}></Button>
-        </>
-      )}
-      <Separator />
-      <Button
-        title="Back"
-        onPress={() => navigation.navigate("Welcome")}
-      ></Button>
-      <Separator />
+      {error.training_status ? (
+        <Text style={styles.errorMessage}>{error.training_status}</Text>
+      ) : null}
+      <View style={styles.switchContainer}>
+        <Switch
+          trackColor={{ false: "#3A3A3A", true: "#0F184C" }}
+          value={showPassword}
+          onValueChange={(value) => setShowPassword(value)}
+        />
+        <Text style={styles.switchLabel}>Show Password</Text>
+      </View>
+      <View style={styles.buttonContainer}>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#000ff" />
+        ) : (
+          <>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#0F184C"
+              contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={handleSubmit}
+            >
+              Submit
+            </Button>
+          </>
+        )}
+      </View>
+      {/* {error ? <Text style={styles.errorMessage}>{error}</Text> : null} */}
       <Text style={styles.phrase}>
         Already registered?{" "}
         <Text style={styles.link} onPress={() => navigation.navigate("Login")}>
@@ -141,39 +205,70 @@ export default Signup;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
+    padding: 20,
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "#648FDE",
   },
+
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 15,
+  },
+
+  buttonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+
   input: {
-    marginVertical: 4,
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
-    backgroundColor: "#fff",
+    marginVertical: 7,
+    fontSize: 14,
   },
-  separator: {
-    margin: 5,
+
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  switchLabel: {
+    marginLeft: 10,
+    fontSize: 15,
   },
 
   phrase: {
     textAlign: "center",
+    marginTop: 10,
+    fontWeight: "bold",
   },
   link: {
     color: "blue",
+    fontWeight: "bold",
   },
+
   dropdown: {
     height: 50,
-    borderColor: "black",
     borderWidth: 1,
+    borderColor: "grey",
     borderRadius: 5,
     paddingHorizontal: 8,
     backgroundColor: "#fff",
-    marginTop: 3,
+    marginTop: 10,
   },
+
   icon: {
     marginRight: 5,
+  },
+
+  errorMessage: {
+    color: "#B53636",
+    fontSize: 13,
+    marginVertical: 3,
+    fontWeight: "bold",
   },
 
   label: {
@@ -186,17 +281,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   placeholderStyle: {
-    fontSize: 16,
+    fontSize: 14,
+    marginLeft: 10,
+    color: "grey",
   },
   selectedTextStyle: {
-    fontSize: 16,
+    fontSize: 14,
+    marginLeft: 10,
   },
+
   iconStyle: {
     width: 20,
     height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
   },
 });

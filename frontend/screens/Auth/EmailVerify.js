@@ -1,64 +1,68 @@
-import {
-  View,
-  Text,
-  Button,
-  StyleSheet,
-  ActivityIndicator,
-  TextInput,
-} from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
-
-const Separator = () => <View style={styles.separator}></View>;
+import axios from "axios";
+import { Button, TextInput } from "react-native-paper";
 
 const EmailVerify = ({ navigation }) => {
-  const [code, setCode] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState({ code: "" });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      if (!code) {
-        setIsLoading(false);
-        return alert("Please provide the code to proceed.");
-      }
-      setIsLoading(false);
+      const { data } = await axios.post("/verify-email", {
+        verificationCode,
+      });
+      alert(data && data.message);
+      console.log("Verification successful.");
       navigation.navigate("Home");
-      alert("Your account has been successfully verified!");
     } catch (error) {
       setIsLoading(false);
-      alert(error);
+      if (error.response && error.response.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Something went wrong with verification, please try again.");
+      }
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Account verification</Text>
       <Text style={styles.phrase}>
         Your account has been created, but we have sent you a code to get it
         verified. Worry not, it should come in any moment.
       </Text>
-      <Separator />
+
       <TextInput
         style={styles.input}
-        value={code}
+        value={verificationCode}
         placeholder="The code received from email"
         autoCapitalize="none"
-        secureTextEntry={true}
-        onChangeText={(text) => setCode(text)}
+        onChangeText={(text) => {
+          setVerificationCode(text);
+          setError((prev) => ({ ...prev, verificationCode: "" }));
+        }}
       ></TextInput>
-      <Separator />
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#000ff" />
-      ) : (
-        <>
-          <Button title="Continue" onPress={handleSubmit}></Button>
-        </>
-      )}
-      <Separator />
-      <Button
-        title="Back"
-        onPress={() => navigation.navigate("Welcome")}
-      ></Button>
+      {error.verificationCode ? (
+        <Text style={styles.errorMessage}>{error.verificationCode}</Text>
+      ) : null}
+      <View style={styles.buttonContainer}>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#000ff" />
+        ) : (
+          <>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#0F184C"
+              contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={handleSubmit}
+            ></Button>
+          </>
+        )}
+      </View>
     </View>
   );
 };
@@ -67,27 +71,32 @@ export default EmailVerify;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
+    padding: 20,
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "#648FDE",
   },
-  title: {
-    fontSize: 30,
-    marginBottom: 15,
-    textAlign: "center",
-  },
+
   input: {
-    marginVertical: 4,
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
-    backgroundColor: "#fff",
+    marginVertical: 7,
+    fontSize: 14,
   },
-  separator: {
-    margin: 5,
+
+  buttonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 30,
   },
+
   phrase: {
     textAlign: "center",
+    marginBottom: 20,
+  },
+
+  errorMessage: {
+    color: "#B53636",
+    fontSize: 13,
+    marginVertical: 3,
+    fontWeight: "bold",
   },
 });

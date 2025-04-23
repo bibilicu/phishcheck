@@ -38,6 +38,16 @@ const anonymousName = () => {
   ); //randomly generating anonymous names
 };
 
+const codeGenerator = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  // 6-digit code
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 // to avoid rare loops of anon names
 const anonymousUniqueName = async () => {
   let anonymous_id;
@@ -71,5 +81,6 @@ module.exports = {
   hashPassword,
   comparePassword,
   anonymousUniqueName,
+  codeGenerator,
   transporter,
 };

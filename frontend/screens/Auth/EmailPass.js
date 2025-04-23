@@ -1,31 +1,26 @@
-import {
-  View,
-  Text,
-  Button,
-  StyleSheet,
-  ActivityIndicator,
-  TextInput,
-} from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
-
-const Separator = () => <View style={styles.separator}></View>;
+import axios from "axios";
+import { Button, TextInput } from "react-native-paper";
 
 const EmailPass = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState({ email: "" });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      if (!email) {
-        setIsLoading(false);
-        return alert("Email is required.");
-      }
-      setIsLoading(false);
-      navigation.navigate("PassCode");
+      const { data } = await axios.post("/send-code", { email });
+      alert(data && data.message);
+      navigation.navigate("ResetPassword");
     } catch (error) {
       setIsLoading(false);
-      alert(error);
+      if (error.response && error.response.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Something went wrong, please try again.");
+      }
     }
   };
 
@@ -37,23 +32,48 @@ const EmailPass = ({ navigation }) => {
       <TextInput
         style={styles.input}
         value={email}
-        placeholder="Your business email"
+        label="Your business email"
+        mode="outlined"
         autoCapitalize="none"
-        onChangeText={(text) => setEmail(text)}
+        keyboardType="email-address"
+        autoComplete="email"
+        onChangeText={(text) => {
+          setEmail(text);
+          setError((prev) => ({ ...prev, email: "" }));
+        }}
       ></TextInput>
-      <Separator />
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#000ff" />
-      ) : (
-        <>
-          <Button title="Submit" onPress={handleSubmit}></Button>
-        </>
-      )}
-      <Separator />
-      <Button
-        title="Back to Login"
-        onPress={() => navigation.navigate("Login")}
-      ></Button>
+      {error.email ? (
+        <Text style={styles.errorMessage}>{error.email}</Text>
+      ) : null}
+      <View style={styles.buttonContainer}>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#000ff" />
+        ) : (
+          <>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#0F184C"
+              contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={handleSubmit}
+            >
+              Send
+            </Button>
+          </>
+        )}
+
+        <Button
+          style={{ borderRadius: 0 }}
+          mode="elevated"
+          buttonColor="#0F184C"
+          contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
+          labelStyle={{ fontSize: 15, color: "#FFF" }}
+          onPress={() => navigation.navigate("Welcome")}
+        >
+          Back
+        </Button>
+      </View>
     </View>
   );
 };
@@ -62,22 +82,33 @@ export default EmailPass;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
+    padding: 20,
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "#648FDE",
   },
+
   input: {
-    marginVertical: 4,
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
-    backgroundColor: "#fff",
+    marginVertical: 7,
+    fontSize: 14,
   },
-  separator: {
-    margin: 5,
+
+  buttonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    marginVertical: 20,
   },
+
   phrase: {
     textAlign: "center",
+    marginBottom: 20,
+  },
+
+  errorMessage: {
+    color: "#B53636",
+    fontSize: 13,
+    marginVertical: 3,
+    fontWeight: "bold",
   },
 });

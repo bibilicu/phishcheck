@@ -1,33 +1,43 @@
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   ActivityIndicator,
-  TextInput,
+  Switch,
 } from "react-native";
 import React, { useState } from "react";
-
-const Separator = () => <View style={styles.separator}></View>;
+import axios from "axios";
+import { Button, TextInput } from "react-native-paper";
 
 const ResetPassword = ({ navigation }) => {
+  const [resetCode, setResetCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirm_password, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState({
+    resetCode: "",
+    password: "",
+    confirm_password: "",
+  });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      if (!password) {
-        setIsLoading(false);
-        return alert("Please provide the new password");
-      }
-      setIsLoading(false);
+      const { data } = await axios.post("/password-reset", {
+        resetCode,
+        password,
+        confirm_password,
+      });
+      alert(data && data.message);
       navigation.navigate("Login");
-      alert("Password has been reset, please login with your new credentials.");
     } catch (error) {
       setIsLoading(false);
-      alert(error);
+      if (error.response && error.response.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Something went wrong, please try again.");
+      }
     }
   };
 
@@ -38,37 +48,71 @@ const ResetPassword = ({ navigation }) => {
       </Text>
       <TextInput
         style={styles.input}
-        value={code}
-        placeholder="The code received from email"
+        value={resetCode}
+        label="The code received from email"
         autoCapitalize="none"
-        secureTextEntry={true}
-        onChangeText={(text) => setCode(text)}
+        onChangeText={(text) => {
+          setResetCode(text);
+          setError((prev) => ({ ...prev, resetCode: "" }));
+        }}
       ></TextInput>
+      {error.resetCode ? (
+        <Text style={styles.errorMessage}>{error.resetCode}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         value={password}
-        placeholder="Your new password"
+        label="Your new password"
         autoCapitalize="none"
-        secureTextEntry={true}
-        onChangeText={(text) => setPassword(text)}
+        secureTextEntry={!showPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          setError((prev) => ({ ...prev, password: "" }));
+        }}
       ></TextInput>
+      {error.password ? (
+        <Text style={styles.errorMessage}>{error.password}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         value={confirm_password}
-        placeholder="Confirm new password"
+        label="Confirm new password"
         autoCapitalize="none"
-        secureTextEntry={true}
-        onChangeText={(text) => setConfirmPassword(text)}
+        secureTextEntry={!showPassword}
+        onChangeText={(text) => {
+          setConfirmPassword(text);
+          setError((prev) => ({ ...prev, confirm_password: "" }));
+        }}
       ></TextInput>
-      <Separator />
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#000ff" />
-      ) : (
-        <>
-          <Button title="Submit" onPress={handleSubmit}></Button>
-        </>
-      )}
-      <Separator />
+      {error.confirm_password ? (
+        <Text style={styles.errorMessage}>{error.confirm_password}</Text>
+      ) : null}
+      <View style={styles.switchContainer}>
+        <Switch
+          trackColor={{ false: "#767577", true: "#0F184C" }}
+          value={showPassword}
+          onValueChange={(value) => setShowPassword(value)}
+        />
+        <Text style={styles.switchLabel}>Show Password</Text>
+      </View>
+      <View style={styles.buttonContainer}>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#000ff" />
+        ) : (
+          <>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#0F184C"
+              contentStyle={{ paddingVertical: 3 }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={handleSubmit}
+            >
+              Submit
+            </Button>
+          </>
+        )}
+      </View>
     </View>
   );
 };
@@ -77,22 +121,43 @@ export default ResetPassword;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
+    padding: 20,
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "#648FDE",
   },
+
   input: {
-    marginVertical: 4,
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
-    backgroundColor: "#fff",
+    marginVertical: 7,
+    fontSize: 14,
   },
-  separator: {
-    margin: 5,
+
+  errorMessage: {
+    color: "#B53636",
+    fontSize: 13,
+    marginVertical: 3,
+    fontWeight: "bold",
   },
+
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  switchLabel: {
+    marginLeft: 10,
+    fontSize: 15,
+  },
+
+  buttonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 30,
+  },
+
   phrase: {
     textAlign: "center",
+    marginBottom: 10,
   },
 });

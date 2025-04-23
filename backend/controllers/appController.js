@@ -39,18 +39,22 @@ const verifyToken = (req, res) => {
 const sendCode = async (req, res) => {
   try {
     const { email } = req.body;
+    const error = {};
 
     if (!email) {
-      return res.status(400).json({ error: "Email is required." });
+      error.email = "Email is required.";
+    } else if (!emailRegex.test(email)) {
+      error.email = "Invalid email format.";
     }
 
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Invalid email format." });
+    if (Object.keys(error).length > 0) {
+      return res.status(404).json({ error });
     }
 
     const employeeUser = await employee.findOne({ email });
+
     if (!employeeUser) {
-      return res.status(404).json({ error: "User not found." });
+      return res.status(404).json({ error: { email: "User not found." } });
     }
 
     const resetCode = Math.floor(100000 + Math.random() * 900000);
@@ -97,71 +101,86 @@ const createAccount = async (req, res) => {
       training_status,
     } = req.body;
 
+    const error = {};
+
     // missing fields
     if (!full_name?.trim()) {
-      return res.status(400).json({ error: "Full Name is required." });
+      error.full_name = "Full Name is required.";
     }
     if (!department?.trim()) {
-      return res.status(400).json({ error: "Department is required." });
+      error.department = "Department is required.";
     }
     if (!email?.trim()) {
-      return res.status(400).json({ error: "Email is required." });
+      error.email = "Email is required.";
+    } else if (!emailRegex.test(email)) {
+      error.email = "Invalid email format";
     }
-    if (!password?.trim() || !confirm_password.trim()) {
-      return res.status(400).json({ error: "Password is required." });
+
+    if (!password?.trim()) {
+      error.password = "Password is required.";
     }
+
+    if (!confirm_password?.trim()) {
+      error.confirm_password = "Please confirm your password.";
+    }
+
     if (password !== confirm_password) {
-      return res.status(400).json({ error: "Passwords do not match" });
+      error.confirm_password = "Passwords do not match.";
     }
+
     if (!training_status) {
-      return res.status(400).json({
-        error: "Please state the last time you undergone a training.",
-      });
+      error.training_status =
+        "Please state the last time you underwent a training.";
 
       // email format
-    }
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Invalid email format." });
     }
 
     // password strength
 
-    const passwordError = [];
+    if (password) {
+      const passwordError = [];
 
-    if (!passwordRegex.upperCase.test(password)) {
-      passwordError.push("At least one uppercase letter.");
+      if (!passwordRegex.upperCase.test(password)) {
+        passwordError.push("At least one uppercase letter.");
+      }
+
+      if (!passwordRegex.lowerCase.test(password)) {
+        passwordError.push("At least one lowercase letter.");
+      }
+
+      if (!passwordRegex.hasSpecialCharacter.test(password)) {
+        passwordError.push("At least one special character.");
+      }
+
+      if (!passwordRegex.hasNumber.test(password)) {
+        passwordError.push("At least one number.");
+      }
+
+      if (!passwordRegex.hasMinLength.test(password)) {
+        passwordError.push("Password must be at least 8 characters.");
+      }
+
+      if (!passwordRegex.hasMaxLength.test(password)) {
+        passwordError.push("Password cannot be longer than 15 characters.");
+      }
+
+      if (passwordError.length > 0) {
+        error.password = passwordError.join(" ");
+      }
     }
 
-    if (!passwordRegex.lowerCase.test(password)) {
-      passwordError.push("At least one lowercase letter.");
-    }
-
-    if (!passwordRegex.hasSpecialCharacter.test(password)) {
-      passwordError.push("At least one special character.");
-    }
-
-    if (!passwordRegex.hasNumber.test(password)) {
-      passwordError.push("At least one number.");
-    }
-
-    if (!passwordRegex.hasMinLength.test(password)) {
-      passwordError.push("Password must be at least 8 characters.");
-    }
-
-    if (!passwordRegex.hasMaxLength.test(password)) {
-      passwordError.push("Password cannot be longer than 15 characters.");
-    }
-
-    if (passwordError.length > 0) {
-      return res.status(400).json({ error: passwordError.join(" ") });
+    if (Object.keys(error).length > 0) {
+      return res.status(400).json({ error });
     }
 
     // verifying if user already exists
     const existingEmployee = await employee.findOne({ email });
     if (existingEmployee) {
-      return res
-        .status(500)
-        .json({ error: "This user has already been registered." });
+      return res.status(500).json({
+        error: {
+          email: "This user has already been registered.",
+        },
+      });
     }
 
     const hashedPassword = await hashPassword(password);
@@ -203,49 +222,92 @@ const createAccount = async (req, res) => {
 };
 
 const verifyEmail = async (req, res) => {
-  const { email, verificationCode } = req.body;
+  try {
+    const { email, verificationCode } = req.body;
+    const error = {};
 
-  const employeeUser = await employee.findOne({ email });
-  if (!employeeUser) {
-    return res.status(404).json({ error: "User not found." });
+    if (!email) {
+      error.email = "Email is required.";
+    } else if (!emailRegex.test(email)) {
+      error.email = "Invalid email format.";
+    }
+
+    if (Object.keys(error).length > 0) {
+      return res.status(400).json({ error });
+    }
+
+    const employeeUser = await employee.findOne({ email });
+    if (!employeeUser) {
+      return res.status(404).json({
+        error: {
+          email: "User not found.",
+        },
+      });
+    }
+
+    if (
+      employeeUser.email_verification_code !== verificationCode ||
+      new Date() > employeeUser.email_verification_expires
+    ) {
+      error.verificationCode = "Invalid or expired code.";
+    }
+
+    if (Object.keys(error).length > 0) {
+      return res.status(400).json({ error });
+    }
+
+    // success after being verified
+    employeeUser.verified = true;
+    employeeUser.email_verification_code = null;
+    employeeUser.email_verification_expires = null;
+    await employeeUser.save();
+
+    return res.status(201).json({
+      message: "User verified successfully.",
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ error: "Something went wrong with verification" });
   }
-
-  if (
-    employeeUser.email_verification_code !== verificationCode ||
-    new Date() > employeeUser.email_verification_expires
-  ) {
-    return res.status(400).json({ error: "Invalid or expired code." });
-  }
-
-  // success after being verified
-  employeeUser.verified = true;
-  employeeUser.email_verification_code = null;
-  employeeUser.email_verification_expires = null;
-  await employeeUser.save();
-
-  return res.status(201).json({
-    message: "User verified successfully.",
-  });
 };
 
 // login endpoint
 const Login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const error = {};
+
     if (!email?.trim()) {
-      return res.status(400).json({ error: "Email is required." });
+      error.email = "Email is required.";
+    } else if (!emailRegex.test(email)) {
+      error.email = "Invalid email format.";
     }
+
     if (!password?.trim()) {
-      return res.status(400).json({ error: "Password is required." });
+      error.password = "Password is required.";
+    }
+
+    if (Object.keys(error).length > 0) {
+      return res.status(400).json({ error });
     }
 
     const existingEmployee = await employee.findOne({ email });
     if (!existingEmployee) {
-      return res.status(400).json({ error: "User has not been found." });
+      return res.status(400).json({
+        error: {
+          email: "User has not been found.",
+        },
+      });
     }
 
     if (!existingEmployee.verified) {
-      return res.status(401).json({ error: "Please verify your email first." });
+      return res.status(401).json({
+        error: {
+          email: "Please verify your email first.",
+        },
+      });
     }
 
     const passwordMatch = await comparePassword(
@@ -253,7 +315,11 @@ const Login = async (req, res) => {
       existingEmployee.password
     );
     if (!passwordMatch) {
-      return res.status(400).json({ error: "Incorrect email or password." });
+      return res.status(400).json({
+        error: {
+          password: "Incorrect email or password.",
+        },
+      });
     }
     //success
     const token = existingEmployee.generateToken();
@@ -285,59 +351,91 @@ const authenticate = async (req, res, next) => {
 // update password if forgotten
 const passwordReset = async (req, res) => {
   try {
-    const { email, resetCode, password, confirm_password } = req.body;
-    const existingEmployee = await employee.findOne({ email });
-    if (!password?.trim() || !confirm_password.trim()) {
-      return res.status(400).json({ error: "Password is required." });
+    const { resetCode, password, confirm_password } = req.body;
+    const error = {};
+
+    if (!resetCode?.trim()) {
+      error.resetCode = "The code is required.";
+    }
+    if (!password?.trim()) {
+      error.password = "Password is required.";
+    }
+
+    if (!confirm_password.trim()) {
+      error.confirm_password = "Please confirm your password.";
     }
 
     if (password !== confirm_password) {
-      return res.status(400).json({ error: "Passwords do not match." });
+      error.confirm_password = "Passwords do not match.";
     }
 
-    const passwordError = [];
+    if (password) {
+      const passwordError = [];
 
-    if (!passwordRegex.upperCase.test(password)) {
-      passwordError.push("At least one uppercase letter.");
+      if (!passwordRegex.upperCase.test(password)) {
+        passwordError.push("At least one uppercase letter.");
+      }
+
+      if (!passwordRegex.lowerCase.test(password)) {
+        passwordError.push("At least one lowercase letter.");
+      }
+
+      if (!passwordRegex.hasSpecialCharacter.test(password)) {
+        passwordError.push("At least one special character.");
+      }
+
+      if (!passwordRegex.hasNumber.test(password)) {
+        passwordError.push("At least one number.");
+      }
+
+      if (!passwordRegex.hasMinLength.test(password)) {
+        passwordError.push("Password must be at least 8 characters.");
+      }
+
+      if (!passwordRegex.hasMaxLength.test(password)) {
+        passwordError.push("Password cannot be longer than 15 characters.");
+      }
+
+      if (passwordError.length > 0) {
+        error.password = passwordError.join(" ");
+      }
     }
 
-    if (!passwordRegex.lowerCase.test(password)) {
-      passwordError.push("At least one lowercase letter.");
+    if (Object.keys(error).length > 0) {
+      return res.status(400).json({ error });
     }
 
-    if (!passwordRegex.hasSpecialCharacter.test(password)) {
-      passwordError.push("At least one special character.");
+    const existingEmployee = await employee.findOne({ reset_code: resetCode });
+
+    if (!existingEmployee) {
+      return res.status(400).json({
+        error: {
+          reset_code: "Invalid code.",
+        },
+      });
     }
 
-    if (!passwordRegex.hasNumber.test(password)) {
-      passwordError.push("At least one number.");
-    }
-
-    if (!passwordRegex.hasMinLength.test(password)) {
-      passwordError.push("Password must be at least 8 characters.");
-    }
-
-    if (!passwordRegex.hasMaxLength.test(password)) {
-      passwordError.push("Password cannot be longer than 15 characters.");
-    }
-
-    if (passwordError.length > 0) {
-      return res.status(400).json({ error: passwordError.join(" ") });
-    }
-
-    if (!existingEmployee || existingEmployee.reset_code !== resetCode) {
-      return res.status(400).json({ error: "Invalid code." });
+    if (existingEmployee.reset_code !== resetCode) {
+      return res.status(400).json({
+        error: {
+          reset_code: "Invalid code.",
+        },
+      });
     }
 
     if (existingEmployee.reset_code_expires < new Date()) {
-      return res.status(400).json({ error: "The code has expired." });
+      return res.status(400).json({
+        error: {
+          reset_code: "The code has expired.",
+        },
+      });
     }
 
     const hashedPassword = await hashPassword(password);
-    (existingEmployee.password = hashedPassword),
-      (existingEmployee.reset_code = null),
-      (existingEmployee.reset_code_expires = null),
-      await existingEmployee.save();
+    existingEmployee.password = hashedPassword;
+    existingEmployee.reset_code = null;
+    existingEmployee.reset_code_expires = null;
+    await existingEmployee.save();
     return res.status(200).json({
       message: "Password has been successfully reset. Please proceed to login.",
     });
