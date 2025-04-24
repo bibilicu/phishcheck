@@ -28,7 +28,6 @@ const Login = ({ navigation }) => {
       });
       setState(data);
       await AsyncStorage.setItem("@auth", JSON.stringify(data));
-      alert(data && data.message);
       navigation.navigate("Home");
     } catch (error) {
       setIsLoading(false);
@@ -47,7 +46,7 @@ const Login = ({ navigation }) => {
         style={styles.input}
         value={email}
         label="Your business email"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"
@@ -63,7 +62,7 @@ const Login = ({ navigation }) => {
         style={styles.input}
         value={password}
         label="Password"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         secureTextEntry={!showPassword}
         onChangeText={(text) => {

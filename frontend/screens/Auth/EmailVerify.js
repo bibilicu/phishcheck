@@ -1,12 +1,15 @@
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from "../../context/authContext";
 import { Button, TextInput } from "react-native-paper";
 
 const EmailVerify = ({ navigation }) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState({ code: "" });
+  const [error, setError] = useState({ verificationCode: "" });
+  const [state, setState] = useContext(AuthContext);
 
   const handleSubmit = async () => {
     try {
@@ -14,7 +17,17 @@ const EmailVerify = ({ navigation }) => {
       const { data } = await axios.post("/verify-email", {
         verificationCode,
       });
-      alert(data && data.message);
+      setState({
+        token: data.token,
+        email: data.email,
+      });
+      await AsyncStorage.setItem(
+        "@auth",
+        JSON.stringify({
+          token: data.token,
+          email: data.email,
+        })
+      );
       console.log("Verification successful.");
       navigation.navigate("Home");
     } catch (error) {
@@ -31,13 +44,17 @@ const EmailVerify = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.phrase}>
         Your account has been created, but we have sent you a code to get it
-        verified. Worry not, it should come in any moment.
+        verified.
+      </Text>
+      <Text style={styles.phrase}>
+        Worry not, it should come in any moment.
       </Text>
 
       <TextInput
         style={styles.input}
         value={verificationCode}
-        placeholder="The code received from email"
+        label="The code received from email"
+        mode="flat"
         autoCapitalize="none"
         onChangeText={(text) => {
           setVerificationCode(text);
@@ -59,7 +76,9 @@ const EmailVerify = ({ navigation }) => {
               contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
               labelStyle={{ fontSize: 15, color: "#FFF" }}
               onPress={handleSubmit}
-            ></Button>
+            >
+              Submit
+            </Button>
           </>
         )}
       </View>
@@ -98,5 +117,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginVertical: 3,
     fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  successMessage: {
+    color: "#41ab5a",
+    fontSize: 13,
+    marginVertical: 3,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

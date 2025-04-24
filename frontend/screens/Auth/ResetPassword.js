@@ -50,6 +50,7 @@ const ResetPassword = ({ navigation }) => {
         style={styles.input}
         value={resetCode}
         label="The code received from email"
+        mode="flat"
         autoCapitalize="none"
         onChangeText={(text) => {
           setResetCode(text);
@@ -63,6 +64,7 @@ const ResetPassword = ({ navigation }) => {
         style={styles.input}
         value={password}
         label="Your new password"
+        mode="flat"
         autoCapitalize="none"
         secureTextEntry={!showPassword}
         onChangeText={(text) => {
@@ -77,6 +79,7 @@ const ResetPassword = ({ navigation }) => {
         style={styles.input}
         value={confirm_password}
         label="Confirm new password"
+        mode="flat"
         autoCapitalize="none"
         secureTextEntry={!showPassword}
         onChangeText={(text) => {

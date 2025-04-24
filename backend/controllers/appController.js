@@ -18,6 +18,7 @@ const {
   anonymousUniqueName,
   comparePassword,
   transporter,
+  codeGenerator,
 } = require("../helpers/authHelper");
 
 //verifyToken endpoint - to verify token
@@ -57,8 +58,8 @@ const sendCode = async (req, res) => {
       return res.status(404).json({ error: { email: "User not found." } });
     }
 
-    const resetCode = Math.floor(100000 + Math.random() * 900000);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const resetCode = codeGenerator();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 10 minutes
 
     await employee.updateOne(
       { email },
@@ -76,7 +77,7 @@ const sendCode = async (req, res) => {
       subject: "Password Reset Code",
       html: `<p>Hello ${employeeUser.anonymous_id},</p></br>
       <p>Here is your password reset code: <strong>${resetCode}</strong></p>
-      <p>The code is available for only 10 minutes.</p></br>
+      <p>The code is available for 1 hour.</p></br>
       <p>Best regards, the PhishCheck team.</p>`,
     });
 
@@ -85,7 +86,7 @@ const sendCode = async (req, res) => {
     }); // this would be a page redirection
   } catch (error) {
     console.log("Send code error: ", error);
-    return res.status(500).json({ error: "Could not send reset code" });
+    return res.status(500).json({ error: "Could not send reset code." });
   }
 };
 
@@ -187,8 +188,8 @@ const createAccount = async (req, res) => {
 
     const anonymous_id = await anonymousUniqueName();
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000);
-    const codeExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const verificationCode = codeGenerator();
+    const codeExpires = new Date(Date.now() + 60 * 60 * 1000);
 
     const employeeUser = new employee({
       full_name,
@@ -204,7 +205,7 @@ const createAccount = async (req, res) => {
     await transporter.sendMail({
       from: "filofteabi@gmail.com",
       to: email,
-      subject: "Account Verification",
+      subject: "Account Verification Code",
       html: `<p>Hello ${employeeUser.anonymous_id},</p></br>
       <p>Here is your verification code: <strong>${verificationCode}</strong></p>
       <p>The code is available for 1 hour.</p></br>
@@ -214,6 +215,7 @@ const createAccount = async (req, res) => {
     await employeeUser.save();
     return res.status(201).json({
       message: "User created successfully. Please verify your email",
+      email,
     });
   } catch (error) {
     console.log(error);
@@ -223,21 +225,21 @@ const createAccount = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
   try {
-    const { email, verificationCode } = req.body;
+    const { verificationCode } = req.body;
     const error = {};
 
-    if (!email) {
-      error.email = "Email is required.";
-    } else if (!emailRegex.test(email)) {
-      error.email = "Invalid email format.";
+    if (!verificationCode) {
+      error.verificationCode = "Verification code is required.";
     }
 
     if (Object.keys(error).length > 0) {
       return res.status(400).json({ error });
     }
 
-    const employeeUser = await employee.findOne({ email });
-    if (!employeeUser) {
+    const existingEmployee = await employee.findOne({
+      email_verification_code: verificationCode,
+    });
+    if (!existingEmployee) {
       return res.status(404).json({
         error: {
           email: "User not found.",
@@ -246,8 +248,8 @@ const verifyEmail = async (req, res) => {
     }
 
     if (
-      employeeUser.email_verification_code !== verificationCode ||
-      new Date() > employeeUser.email_verification_expires
+      existingEmployee.email_verification_code !== verificationCode ||
+      new Date() > existingEmployee.email_verification_expires
     ) {
       error.verificationCode = "Invalid or expired code.";
     }
@@ -257,13 +259,16 @@ const verifyEmail = async (req, res) => {
     }
 
     // success after being verified
-    employeeUser.verified = true;
-    employeeUser.email_verification_code = null;
-    employeeUser.email_verification_expires = null;
-    await employeeUser.save();
+    existingEmployee.verified = true;
+    existingEmployee.email_verification_code = null;
+    existingEmployee.email_verification_expires = null;
+    const token = existingEmployee.generateToken();
+    await existingEmployee.save();
 
     return res.status(201).json({
       message: "User verified successfully.",
+      token,
+      email: existingEmployee.email,
     });
   } catch (error) {
     console.log(error);

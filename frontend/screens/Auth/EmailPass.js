@@ -33,7 +33,7 @@ const EmailPass = ({ navigation }) => {
         style={styles.input}
         value={email}
         label="Your business email"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"

@@ -8,8 +8,6 @@ import {
 import { Button, TextInput } from "react-native-paper";
 import React, { useState, useContext } from "react";
 import { Dropdown } from "react-native-element-dropdown";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthContext } from "../../context/authContext";
 import axios from "axios";
 
 // for tomorrow, complete functionality and validation
@@ -31,7 +29,6 @@ const Signup = ({ navigation }) => {
     confirm_password: "",
     training_status: "",
   });
-  const [state, setState] = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
 
   const dataTraining = [
@@ -52,9 +49,6 @@ const Signup = ({ navigation }) => {
         confirm_password,
         training_status,
       });
-      setState(data);
-      await AsyncStorage.setItem("@auth", JSON.stringify(data));
-      alert(data && data.message);
       navigation.navigate("EmailVerify");
     } catch (error) {
       setIsLoading(false);
@@ -73,7 +67,7 @@ const Signup = ({ navigation }) => {
         style={styles.input}
         value={full_name}
         label="Full Name"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         onChangeText={(text) => {
           setFullName(text);
@@ -87,7 +81,7 @@ const Signup = ({ navigation }) => {
         style={styles.input}
         value={department}
         label="Department (e.g. IT, HR, Finance)"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         onChangeText={(text) => {
           setDepartment(text);
@@ -101,7 +95,7 @@ const Signup = ({ navigation }) => {
         style={styles.input}
         value={email}
         label="Business Email"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         onChangeText={(text) => {
           setEmail(text);
@@ -115,7 +109,7 @@ const Signup = ({ navigation }) => {
         style={styles.input}
         value={password}
         label="Password"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         secureTextEntry={!showPassword}
         onChangeText={(text) => {
@@ -130,7 +124,7 @@ const Signup = ({ navigation }) => {
         style={styles.input}
         value={confirm_password}
         label="Confirm your password"
-        mode="outlined"
+        mode="flat"
         autoCapitalize="none"
         secureTextEntry={!showPassword}
         onChangeText={(text) => {
