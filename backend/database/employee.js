@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 const jwt = require("jsonwebtoken");
 
-const employeeSchema = new mongoose.Schema(
+const employeeSchema = new Schema(
   {
     full_name: {
       type: String,
@@ -45,6 +46,14 @@ const employeeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    quizzes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Quiz",
+      },
+    ],
+
     // for account verification
     email_verification_code: String,
     email_verification_expires: Date,
