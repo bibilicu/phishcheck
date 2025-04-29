@@ -10,6 +10,8 @@ const {
   passwordReset,
 } = require("../controllers/appController");
 
+const { getQuestions } = require("../controllers/questionsController");
+
 // routes
 router.post("/create-account", createAccount);
 
@@ -19,13 +21,16 @@ router.post("/verify-email", verifyEmail);
 
 // for testing purposes
 router.get("/home", authenticate, (req, res) => {
-  res
-    .status(200)
-    .json({ message: `Hello, ${req.user.email}!`, user: req.user });
+  res.json({
+    message: `Welcome!, ${req.user.anonymous_id}`,
+    user: req.user,
+  });
 });
 
 router.post("/send-code", sendCode);
 
 router.post("/password-reset", passwordReset);
+
+router.get("/questions", getQuestions);
 
 module.exports = router;

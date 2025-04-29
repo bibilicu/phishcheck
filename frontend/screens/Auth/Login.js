@@ -26,8 +26,14 @@ const Login = ({ navigation }) => {
         email,
         password,
       });
-      setState(data);
-      await AsyncStorage.setItem("@auth", JSON.stringify(data));
+      setState({
+        token: data.token,
+        user: data.user,
+      });
+      await AsyncStorage.setItem(
+        "@auth",
+        JSON.stringify({ token: data.token, user: data.user })
+      );
       navigation.navigate("Home");
     } catch (error) {
       setIsLoading(false);

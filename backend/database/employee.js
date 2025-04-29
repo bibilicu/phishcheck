@@ -68,11 +68,11 @@ employeeSchema.methods.generateToken = function () {
   try {
     const token = jwt.sign(
       {
-        userId: this._id.toString(),
-        email: this.email,
+        _id: this._id.toString(),
+        anonymous_id: this.anonymous_id,
       },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "3d" } // 3 zile
     );
     return token;
   } catch (error) {

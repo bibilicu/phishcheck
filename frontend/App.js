@@ -7,10 +7,15 @@ import Home from "./screens/afterAuth/Home";
 import EmailVerify from "./screens/Auth/EmailVerify";
 import ResetPassword from "./screens/Auth/ResetPassword";
 import EmailPass from "./screens/Auth/EmailPass";
+import PhishingQuiz from "./screens/afterAuth/PhishingQuiz";
+import EmailQuiz from "./screens/afterAuth/EmailQuiz";
+import SmsQuiz from "./screens/afterAuth/SmsQuiz";
+import VishingQuiz from "./screens/afterAuth/VishingQuiz";
 import { AuthProvider } from "./context/authContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ScrollView, StyleSheet } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
+import Result from "./screens/afterAuth/Result";
 
 const Stack = createNativeStackNavigator();
 
@@ -59,6 +64,31 @@ export default function App() {
                 <Stack.Screen
                   name="Home"
                   component={Home}
+                  options={{ headerShown: false }}
+                ></Stack.Screen>
+                <Stack.Screen
+                  name="PhishingQuiz"
+                  component={PhishingQuiz}
+                  options={{ headerShown: false }}
+                ></Stack.Screen>
+                <Stack.Screen
+                  name="EmailQuiz"
+                  component={EmailQuiz}
+                  options={{ headerShown: false }}
+                ></Stack.Screen>
+                <Stack.Screen
+                  name="SmsQuiz"
+                  component={SmsQuiz}
+                  options={{ headerShown: false }}
+                ></Stack.Screen>
+                <Stack.Screen
+                  name="VishingQuiz"
+                  component={VishingQuiz}
+                  options={{ headerShown: false }}
+                ></Stack.Screen>
+                <Stack.Screen
+                  name="Result"
+                  component={Result}
                   options={{ headerShown: false }}
                 ></Stack.Screen>
               </Stack.Navigator>

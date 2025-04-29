@@ -49,12 +49,12 @@ const sendCode = async (req, res) => {
     }
 
     if (Object.keys(error).length > 0) {
-      return res.status(404).json({ error });
+      return res.status(400).json({ error });
     }
 
-    const employeeUser = await employee.findOne({ email });
+    const user = await employee.findOne({ email });
 
-    if (!employeeUser) {
+    if (!user) {
       return res.status(404).json({ error: { email: "User not found." } });
     }
 
@@ -75,7 +75,7 @@ const sendCode = async (req, res) => {
       from: "filofteabi@gmail.com",
       to: email,
       subject: "Password Reset Code",
-      html: `<p>Hello ${employeeUser.anonymous_id},</p></br>
+      html: `<p>Hello ${user.anonymous_id},</p></br>
       <p>Here is your password reset code: <strong>${resetCode}</strong></p>
       <p>The code is available for 1 hour.</p></br>
       <p>Best regards, the PhishCheck team.</p>`,
@@ -175,8 +175,8 @@ const createAccount = async (req, res) => {
     }
 
     // verifying if user already exists
-    const existingEmployee = await employee.findOne({ email });
-    if (existingEmployee) {
+    const existingUser = await employee.findOne({ email });
+    if (existingUser) {
       return res.status(500).json({
         error: {
           email: "This user has already been registered.",
@@ -191,7 +191,7 @@ const createAccount = async (req, res) => {
     const verificationCode = codeGenerator();
     const codeExpires = new Date(Date.now() + 60 * 60 * 1000);
 
-    const employeeUser = new employee({
+    const user = new employee({
       full_name,
       department,
       email,
@@ -206,13 +206,13 @@ const createAccount = async (req, res) => {
       from: "filofteabi@gmail.com",
       to: email,
       subject: "Account Verification Code",
-      html: `<p>Hello ${employeeUser.anonymous_id},</p></br>
+      html: `<p>Hello ${user.anonymous_id},</p></br>
       <p>Here is your verification code: <strong>${verificationCode}</strong></p>
       <p>The code is available for 1 hour.</p></br>
       <p>Best regards, the PhishCheck team.</p>`,
     });
 
-    await employeeUser.save();
+    await user.save();
     return res.status(201).json({
       message: "User created successfully. Please verify your email",
       email,
@@ -236,10 +236,10 @@ const verifyEmail = async (req, res) => {
       return res.status(400).json({ error });
     }
 
-    const existingEmployee = await employee.findOne({
+    const user = await employee.findOne({
       email_verification_code: verificationCode,
     });
-    if (!existingEmployee) {
+    if (!user) {
       return res.status(404).json({
         error: {
           email: "User not found.",
@@ -248,8 +248,8 @@ const verifyEmail = async (req, res) => {
     }
 
     if (
-      existingEmployee.email_verification_code !== verificationCode ||
-      new Date() > existingEmployee.email_verification_expires
+      user.email_verification_code !== verificationCode ||
+      new Date() > user.email_verification_expires
     ) {
       error.verificationCode = "Invalid or expired code.";
     }
@@ -259,16 +259,16 @@ const verifyEmail = async (req, res) => {
     }
 
     // success after being verified
-    existingEmployee.verified = true;
-    existingEmployee.email_verification_code = null;
-    existingEmployee.email_verification_expires = null;
-    const token = existingEmployee.generateToken();
-    await existingEmployee.save();
+    user.verified = true;
+    user.email_verification_code = null;
+    user.email_verification_expires = null;
+    const token = user.generateToken();
+    await user.save();
 
     return res.status(201).json({
       message: "User verified successfully.",
       token,
-      email: existingEmployee.email,
+      user,
     });
   } catch (error) {
     console.log(error);
@@ -298,8 +298,8 @@ const Login = async (req, res) => {
       return res.status(400).json({ error });
     }
 
-    const existingEmployee = await employee.findOne({ email });
-    if (!existingEmployee) {
+    const user = await employee.findOne({ email });
+    if (!user) {
       return res.status(400).json({
         error: {
           email: "User has not been found.",
@@ -307,7 +307,7 @@ const Login = async (req, res) => {
       });
     }
 
-    if (!existingEmployee.verified) {
+    if (!user.verified) {
       return res.status(401).json({
         error: {
           email: "Please verify your email first.",
@@ -315,10 +315,7 @@ const Login = async (req, res) => {
       });
     }
 
-    const passwordMatch = await comparePassword(
-      password,
-      existingEmployee.password
-    );
+    const passwordMatch = await comparePassword(password, user.password);
     if (!passwordMatch) {
       return res.status(400).json({
         error: {
@@ -327,10 +324,10 @@ const Login = async (req, res) => {
       });
     }
     //success
-    const token = existingEmployee.generateToken();
+    const token = user.generateToken();
     return res.status(200).json({
-      message: `Login successful, welcome ${existingEmployee.anonymous_id}`,
       token,
+      user,
     });
   } catch (error) {
     console.log(error);
@@ -410,9 +407,9 @@ const passwordReset = async (req, res) => {
       return res.status(400).json({ error });
     }
 
-    const existingEmployee = await employee.findOne({ reset_code: resetCode });
+    const user = await employee.findOne({ reset_code: resetCode });
 
-    if (!existingEmployee) {
+    if (!user) {
       return res.status(400).json({
         error: {
           reset_code: "Invalid code.",
@@ -420,7 +417,7 @@ const passwordReset = async (req, res) => {
       });
     }
 
-    if (existingEmployee.reset_code !== resetCode) {
+    if (user.reset_code !== resetCode) {
       return res.status(400).json({
         error: {
           reset_code: "Invalid code.",
@@ -428,7 +425,7 @@ const passwordReset = async (req, res) => {
       });
     }
 
-    if (existingEmployee.reset_code_expires < new Date()) {
+    if (user.reset_code_expires < new Date()) {
       return res.status(400).json({
         error: {
           reset_code: "The code has expired.",
@@ -437,10 +434,10 @@ const passwordReset = async (req, res) => {
     }
 
     const hashedPassword = await hashPassword(password);
-    existingEmployee.password = hashedPassword;
-    existingEmployee.reset_code = null;
-    existingEmployee.reset_code_expires = null;
-    await existingEmployee.save();
+    user.password = hashedPassword;
+    user.reset_code = null;
+    user.reset_code_expires = null;
+    await user.save();
     return res.status(200).json({
       message: "Password has been successfully reset. Please proceed to login.",
     });

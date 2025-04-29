@@ -1,12 +1,21 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/authContext";
-import { Button, Portal, Dialog } from "react-native-paper";
+import { Button, Portal, Dialog, Card } from "react-native-paper";
 import axios from "axios";
+import cybercrime from "../../assets/cybercrime.png";
+import phishing from "../../assets/phishing.png";
+import smishing from "../../assets/smishing.png";
+import vishing from "../../assets/vishing.png";
+import { useNavigation } from "@react-navigation/native";
+import exit from "../../assets/exit.png";
 
 const Home = () => {
   const [state, setState, handleLogout] = useContext(AuthContext);
   const [visible, setVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navigation = useNavigation();
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
@@ -20,16 +29,25 @@ const Home = () => {
           },
         });
       } catch (error) {
-        handleLogout();
+        setIsLoading(false);
+        console.error("Token expired or invalid: ", error);
+        alert("Your session has expired, please log in again.", [
+          {
+            text: "Ok",
+            onPress: () => {
+              handleLogout();
+            },
+          },
+        ]);
       }
     };
 
-    if (state?.token) {
+    if (state.token) {
       verifyToken();
     } else {
       handleLogout();
     }
-  }, []);
+  }, [state.token]);
 
   const handleLogoutDialog = () => {
     hideDialog();
@@ -37,56 +55,181 @@ const Home = () => {
   };
 
   return (
-    <View>
-      <Text>Home</Text>
-      <Text>{JSON.stringify(state, null, 4)}</Text>
-      <View style={styles.buttonContainer}>
-        <Button
-          style={{ borderRadius: 0 }}
-          mode="elevated"
-          buttonColor="#0F184C"
-          contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
-          labelStyle={{ fontSize: 15, color: "#FFF" }}
-          onPress={showDialog}
+    <View style={styles.container}>
+      <View style={styles.exitButton}>
+        <TouchableOpacity onPress={showDialog}>
+          <Image source={exit} style={styles.exit} />
+        </TouchableOpacity>
+      </View>
+      <Portal>
+        <Dialog
+          visible={visible}
+          onDismiss={hideDialog}
+          style={styles.dialogContainer}
         >
-          Logout
-        </Button>
-        <Portal>
-          <Dialog
-            visible={visible}
-            onDismiss={hideDialog}
-            style={styles.dialogContainer}
+          <Dialog.Title>Confirm Logout</Dialog.Title>
+          <Dialog.Content>
+            <Text style={{ fontSize: 15, marginTop: 10 }}>
+              Are you sure you want to log out?
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions style={styles.actionsContainer}>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#0F184C"
+              contentStyle={{
+                paddingVertical: 3,
+                paddingHorizontal: 8,
+              }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={hideDialog}
+            >
+              Cancel
+            </Button>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#B53636"
+              contentStyle={{ paddingVertical: 3, paddingHorizontal: 10 }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={handleLogoutDialog}
+            >
+              Log Out
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+      <Text style={styles.title}>
+        Welcome {state.user ? state.user.anonymous_id : "Guest"}!
+      </Text>
+      <Text style={styles.phrase}>Your total score: 0</Text>
+      <View style={styles.cardContainer}>
+        <Card mode="elevated" style={{ width: 170, height: 210 }}>
+          <Card.Content
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
-            <Dialog.Title>Confirm Logout</Dialog.Title>
-            <Dialog.Content>
-              <Text style={{ fontSize: 15, marginTop: 10 }}>
-                Are you sure you want to log out?
-              </Text>
-            </Dialog.Content>
-            <Dialog.Actions style={styles.actionsContainer}>
+            <Image source={cybercrime} style={styles.picture} />
+            <Text variant="titleLarge" style={styles.cardTitle}>
+              Introduction to Phishing
+            </Text>
+            <Card.Actions style={{ marginTop: 15, marginRight: 5 }}>
+              <Button
+                style={{
+                  borderRadius: 0,
+                }}
+                mode="elevated"
+                buttonColor="#0F184C"
+                contentStyle={{ paddingVertical: 3 }}
+                labelStyle={{ fontSize: 15, color: "#FFF" }}
+                onPress={() => navigation.navigate("PhishingQuiz")}
+              >
+                Start
+              </Button>
+            </Card.Actions>
+          </Card.Content>
+        </Card>
+
+        <Card
+          mode="elevated"
+          style={{
+            width: 170,
+            height: 210,
+          }}
+        >
+          <Card.Content
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image source={phishing} style={styles.picture} />
+            <Text variant="titleLarge" style={styles.cardTitle}>
+              Email Phishing
+            </Text>
+            <Card.Actions style={{ marginTop: 31, marginRight: 5 }}>
               <Button
                 style={{ borderRadius: 0 }}
                 mode="elevated"
                 buttonColor="#0F184C"
-                contentStyle={{ paddingVertical: 3, paddingHorizontal: 8 }}
+                contentStyle={{
+                  paddingVertical: 3,
+                }}
                 labelStyle={{ fontSize: 15, color: "#FFF" }}
-                onPress={hideDialog}
+                onPress={() => navigation.navigate("EmailQuiz")}
               >
-                Cancel
+                Start
               </Button>
+            </Card.Actions>
+          </Card.Content>
+        </Card>
+      </View>
+      {/* second container */}
+      <View style={styles.cardContainer}>
+        <Card mode="elevated" style={{ width: 170, height: 210 }}>
+          <Card.Content
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image source={smishing} style={styles.picture} />
+            <Text variant="titleLarge" style={styles.cardTitle}>
+              Smishing (SMS Phishing)
+            </Text>
+            <Card.Actions style={{ marginTop: 15, marginRight: 5 }}>
+              <Button
+                style={{
+                  borderRadius: 0,
+                }}
+                mode="elevated"
+                buttonColor="#0F184C"
+                contentStyle={{ paddingVertical: 3 }}
+                labelStyle={{ fontSize: 15, color: "#FFF" }}
+                onPress={() => navigation.navigate("SmsQuiz")}
+              >
+                Start
+              </Button>
+            </Card.Actions>
+          </Card.Content>
+        </Card>
+
+        <Card
+          mode="elevated"
+          style={{
+            width: 170,
+            height: 210,
+          }}
+        >
+          <Card.Content
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image source={vishing} style={styles.picture} />
+            <Text variant="titleLarge" style={styles.cardTitle}>
+              Vishing (Voice Phishing)
+            </Text>
+            <Card.Actions style={{ marginTop: 15, marginRight: 5 }}>
               <Button
                 style={{ borderRadius: 0 }}
                 mode="elevated"
-                buttonColor="#B53636"
-                contentStyle={{ paddingVertical: 3, paddingHorizontal: 10 }}
+                buttonColor="#0F184C"
+                contentStyle={{
+                  paddingVertical: 3,
+                }}
                 labelStyle={{ fontSize: 15, color: "#FFF" }}
-                onPress={handleLogoutDialog}
+                onPress={() => navigation.navigate("VishingQuiz")}
               >
-                Log Out
+                Start
               </Button>
-            </Dialog.Actions>
-          </Dialog>
-        </Portal>
+            </Card.Actions>
+          </Card.Content>
+        </Card>
       </View>
     </View>
   );
@@ -95,11 +238,62 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    alignItems: "center",
+  container: {
+    padding: 20,
+    flex: 1,
     justifyContent: "center",
-    marginVertical: 20,
+    backgroundColor: "#648FDE",
   },
+
+  title: {
+    fontSize: 23,
+    fontWeight: "bold",
+    textAlign: "center",
+    paddingTop: 20,
+  },
+
+  phrase: {
+    textAlign: "center",
+    fontSize: 17,
+  },
+
+  exitButton: {
+    position: "relative",
+  },
+
+  exit: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+    position: "absolute",
+    bottom: 10,
+    left: -7,
+  },
+
+  picture: {
+    width: 68,
+    height: 68,
+    alignSelf: "center",
+    marginBottom: 8,
+  },
+
+  cardTitle: {
+    textAlign: "center",
+    marginTop: 5,
+    fontWeight: "bold",
+  },
+
+  cardContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 40,
+  },
+
+  // buttonContainer: {
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  //   paddingTop: 50,
+  // },
 
   actionsContainer: {
     flexDirection: "row",

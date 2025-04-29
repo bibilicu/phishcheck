@@ -17,17 +17,8 @@ const EmailVerify = ({ navigation }) => {
       const { data } = await axios.post("/verify-email", {
         verificationCode,
       });
-      setState({
-        token: data.token,
-        email: data.email,
-      });
-      await AsyncStorage.setItem(
-        "@auth",
-        JSON.stringify({
-          token: data.token,
-          email: data.email,
-        })
-      );
+      setState(data);
+      await AsyncStorage.setItem("@auth", JSON.stringify(data));
       console.log("Verification successful.");
       navigation.navigate("Home");
     } catch (error) {

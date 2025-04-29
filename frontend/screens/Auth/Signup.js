@@ -6,7 +6,7 @@ import {
   Switch,
 } from "react-native";
 import { Button, TextInput } from "react-native-paper";
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Dropdown } from "react-native-element-dropdown";
 import axios from "axios";
 
@@ -41,7 +41,7 @@ const Signup = ({ navigation }) => {
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.post("/create-account", {
+      await axios.post("/create-account", {
         full_name,
         department,
         email,

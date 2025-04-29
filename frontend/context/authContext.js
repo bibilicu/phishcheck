@@ -10,7 +10,7 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const navigation = useNavigation();
   const [state, setState] = useState({
-    email: null,
+    user: null,
     token: "",
   });
 
@@ -18,15 +18,23 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const loadStorage = async () => {
-      let data = await AsyncStorage.getItem("@auth");
-      let parseData = JSON.parse(data);
-      if (parseData?.token) {
-        setState({ email: parseData?.email, token: parseData?.token });
-        axios.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${parseData.token}`;
+      try {
+        let data = await AsyncStorage.getItem("@auth");
+        let parseData = JSON.parse(data);
+        if (parseData?.user && parseData?.token) {
+          setState({
+            user: parseData.user,
+            token: parseData.token,
+          });
+          axios.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${parseData.token}`;
+        }
+      } catch (error) {
+        console.log("Error loading from storage: ", error);
       }
     };
+
     loadStorage();
 
     const interceptor = axios.interceptors.response.use(
@@ -48,7 +56,7 @@ const AuthProvider = ({ children }) => {
   const handleLogout = async () => {
     console.log("logout");
     await AsyncStorage.removeItem("@auth");
-    setState({ email: null, token: "" });
+    setState({ user: null, token: "" });
     navigation.navigate("Welcome");
   };
 
