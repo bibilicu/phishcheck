@@ -13,6 +13,8 @@ const {
 const {
   getQuestions,
   saveResults,
+  getQuizResults,
+  getTotalScore,
 } = require("../controllers/questionsController");
 
 // routes
@@ -37,5 +39,9 @@ router.post("/password-reset", passwordReset);
 router.get("/questions", getQuestions);
 
 router.post("/save-answer", saveResults);
+
+router.get("/quiz-score/:employee_id/:quiz_id", getQuizResults);
+
+router.get("/total-score/:employee_id", getTotalScore);
 
 module.exports = router;

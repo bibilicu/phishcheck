@@ -2,12 +2,16 @@ import { View, Text, StyleSheet, Animated } from "react-native";
 import { Button } from "react-native-paper";
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import Timer from "./Timer";
 import { useNavigation } from "@react-navigation/native";
 
 const Questions = ({ section_type, user }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0); // 0 - starting from 1
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  // to locally save answers
+  const [answers, setAnswers] = useState([]);
+  const [startTime, setStartTime] = useState(Date.now());
   const [quizId, setQuizId] = useState(null);
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
@@ -16,7 +20,13 @@ const Questions = ({ section_type, user }) => {
   const [isCorrect, setIsCorrect] = useState(null);
   const progress = useRef(new Animated.Value(0)).current;
 
+  const timer_interval = useRef(null);
   const navigation = useNavigation();
+
+  useEffect(() => {
+    timer_interval.current?.timer_start();
+    return () => timer_interval.current?.timer_stop();
+  }, []);
 
   useEffect(() => {
     if (questions.length > 0) {
@@ -65,7 +75,7 @@ const Questions = ({ section_type, user }) => {
     fetchQuestions();
   }, [section_type]);
 
-  const handleAnswer = async (answer) => {
+  const handleAnswer = (answer) => {
     if (!quizId) {
       console.error("Cannot save answer - quizId is missing");
       return;
@@ -73,42 +83,65 @@ const Questions = ({ section_type, user }) => {
     const correctAnswer = currentQuestion.correct_answer.toLowerCase();
     const selected = answer.toLowerCase();
     const isCorrect = selected === correctAnswer;
+    const answer_time = (Date.now() - startTime) / 1000;
+
     setSelectedAnswer(answer);
     setIsCorrect(isCorrect);
     setShowExplanation(true);
-    console.log("Selected: ", answer);
 
     if (isCorrect) {
       setScore((prevScore) => prevScore + 10);
     }
 
-    try {
-      await axios.post("/save-answer", {
-        employee_id: user._id,
-        quiz_id: quizId,
+    setAnswers((prev) => [
+      ...prev,
+      {
         questions_id: currentQuestion._id,
         selected_answer: answer,
         is_correct: isCorrect,
         score: isCorrect ? 10 : 0,
-      });
-    } catch (error) {
-      console.log({
-        message: error.message,
-        response: error.response?.data,
-        config: error.config,
-      });
-    }
+        answered_at: answer_time,
+      },
+    ]);
+
+    setStartTime(Date.now());
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedAnswer(null);
       setShowExplanation(false);
       setIsCorrect(null);
     } else {
-      navigation.navigate("Result");
+      const timer_left = timer_interval.current?.get_timer_left();
+      const time_spent = 600 - timer_left;
+
+      timer_interval.current?.timer_stop();
+      try {
+        await Promise.all(
+          answers.map((a) =>
+            axios.post("/save-answer", {
+              employee_id: user._id,
+              quiz_id: quizId,
+              ...a,
+            })
+          )
+        );
+      } catch (error) {
+        console.log("Error submitting answers", error);
+      }
+
+      navigation.navigate("Result", {
+        timer_left,
+        time_spent,
+        quiz_id: quizId,
+      });
     }
+  };
+
+  const handleTimerExpire = () => {
+    navigation.navigate("Result", { timer_left: 0, time_spent: 600 });
   };
 
   if (isLoading) return <Text>Loading...</Text>;
@@ -119,6 +152,7 @@ const Questions = ({ section_type, user }) => {
   return (
     <View>
       <View>{renderProgress()}</View>
+      <Timer ref={timer_interval} onExpire={handleTimerExpire} autoStart />
       <View style={{ position: "relative" }}>
         <Text style={styles.points}>
           {score}/{totalQuestions}
@@ -201,8 +235,16 @@ const styles = StyleSheet.create({
   points: {
     position: "absolute",
     right: 5,
-    bottom: 65,
+    bottom: 130,
     fontSize: 20,
+    fontWeight: "bold",
+    backgroundColor: "#0F184C",
+    width: "30%",
+    padding: 9,
+    borderWidth: 2,
+    color: "#FFF",
+    borderColor: "#FFF",
+    textAlign: "center",
   },
 
   phraseText: {

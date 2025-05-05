@@ -1,6 +1,7 @@
 const quiz = require("../database/quiz");
+const results = require("../database/results");
 const answer = require("../database/results");
-// const quiz = require("../database/quiz");
+const { ObjectId } = require("mongodb");
 
 const getQuestions = async (req, res) => {
   try {
@@ -93,4 +94,62 @@ const saveResults = async (req, res) => {
     return res.status(500).json({ message: "Error saving the results." });
   }
 };
-module.exports = { getQuestions, saveResults };
+
+const getQuizResults = async (req, res) => {
+  const { employee_id, quiz_id } = req.params;
+
+  try {
+    const result = await results.aggregate([
+      {
+        $match: {
+          employee_id: new ObjectId(employee_id),
+          quiz_id: new ObjectId(quiz_id),
+        },
+      },
+      {
+        $group: {
+          _id: "$quiz_id",
+          totalScore: { $sum: "$score" },
+          correctAnswers: {
+            $sum: { $cond: ["$is_correct", 1, 0] },
+          },
+          totalQuestions: { $sum: 1 },
+        },
+      },
+    ]);
+    if (result.length === 0) {
+      return res.status(400).json({ message: "No results found" });
+    }
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const getTotalScore = async (req, res) => {
+  const { employee_id } = req.params;
+
+  try {
+    const result = await results.aggregate([
+      { $match: { employee_id: new ObjectId(employee_id) } },
+      {
+        $group: {
+          _id: "$employee_id",
+          totalScore: { $sum: "$score" },
+          correctAnswers: {
+            $sum: { $cond: ["$is_correct", 1, 0] },
+          },
+          totalQuestions: { $sum: 1 },
+        },
+      },
+    ]);
+
+    if (result.length === 0) {
+      return res.status(400).json({ message: "No results found." });
+    }
+    res.json(result[0]);
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+module.exports = { getQuestions, saveResults, getQuizResults, getTotalScore };

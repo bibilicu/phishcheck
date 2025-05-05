@@ -14,6 +14,7 @@ const Home = () => {
   const [state, setState, handleLogout] = useContext(AuthContext);
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalScore, setTotalScore] = useState(null);
 
   const navigation = useNavigation();
 
@@ -48,6 +49,26 @@ const Home = () => {
       handleLogout();
     }
   }, [state.token]);
+
+  // total score of the employee
+  useEffect(() => {
+    const fetch_score = async () => {
+      try {
+        const { data } = await axios.get(`/total-score/${state.user._id}`, {
+          headers: {
+            Authorization: `Bearer ${state.token}`,
+          },
+        });
+        setTotalScore(data.totalScore);
+      } catch (error) {
+        console.error("Failed to fetch score.", error);
+      }
+    };
+
+    if (state.user && state.token) {
+      fetch_score();
+    }
+  }, [state.user, state.token]);
 
   const handleLogoutDialog = () => {
     hideDialog();
@@ -103,7 +124,18 @@ const Home = () => {
       <Text style={styles.title}>
         Welcome {state.user ? state.user.anonymous_id : "Guest"}!
       </Text>
-      <Text style={styles.phrase}>Your total score: 0</Text>
+      <Text
+        style={[
+          styles.phrase,
+          {
+            fontWeight: "bold",
+            marginTop: 10,
+            textDecorationLine: "underline",
+          },
+        ]}
+      >
+        Your total score: {typeof totalScore === "number" ? totalScore : 0}
+      </Text>
       <View style={styles.cardContainer}>
         <Card mode="elevated" style={{ width: 170, height: 210 }}>
           <Card.Content
