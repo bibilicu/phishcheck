@@ -39,10 +39,7 @@ const PhishingQuiz = () => {
   return (
     <View style={styles.container}>
       <ExitQuiz />
-      <View style={{ position: "relative" }}>
-        <Text style={styles.points}>0/100</Text>
-      </View>
-      <Questions section="Introduction to Phishing" />
+      <Questions section_type="Introduction to Phishing" user={state.user} />
     </View>
   );
 };
@@ -55,12 +52,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     backgroundColor: "#648FDE",
-  },
-
-  points: {
-    position: "absolute",
-    right: 5,
-    bottom: 65,
-    fontSize: 20,
   },
 });

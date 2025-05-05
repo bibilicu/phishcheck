@@ -47,13 +47,6 @@ const employeeSchema = new Schema(
       default: false,
     },
 
-    quizzes: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Quiz",
-      },
-    ],
-
     // for account verification
     email_verification_code: String,
     email_verification_expires: Date,

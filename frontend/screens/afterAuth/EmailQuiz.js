@@ -40,17 +40,7 @@ const EmailQuiz = () => {
   return (
     <View style={styles.container}>
       <ExitQuiz />
-      <View style={{ position: "relative" }}>
-        <Text style={styles.points}>0/100</Text>
-      </View>
-      <View style={{ position: "relative" }}>
-        <ProgressBar
-          style={styles.progress_bar}
-          progress={0.5}
-          color={MD3Colors}
-        />
-      </View>
-      <Questions></Questions>
+      <Questions section_type="Email" user={state.user}></Questions>
     </View>
   );
 };
@@ -70,10 +60,5 @@ const styles = StyleSheet.create({
     right: 5,
     bottom: 100,
     fontSize: 20,
-  },
-
-  progress_bar: {
-    position: "absolute",
-    top: -70,
   },
 });

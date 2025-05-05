@@ -10,7 +10,10 @@ const {
   passwordReset,
 } = require("../controllers/appController");
 
-const { getQuestions } = require("../controllers/questionsController");
+const {
+  getQuestions,
+  saveResults,
+} = require("../controllers/questionsController");
 
 // routes
 router.post("/create-account", createAccount);
@@ -32,5 +35,7 @@ router.post("/send-code", sendCode);
 router.post("/password-reset", passwordReset);
 
 router.get("/questions", getQuestions);
+
+router.post("/save-answer", saveResults);
 
 module.exports = router;

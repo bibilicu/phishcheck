@@ -4,10 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 
-const Questions = ({ section }) => {
+const Questions = ({ section_type, user }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0); // 0 - starting from 1
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [quizId, setQuizId] = useState(null);
+  const [score, setScore] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCorrect, setIsCorrect] = useState(null);
@@ -42,25 +45,59 @@ const Questions = ({ section }) => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const { data } = await axios.get(`/questions?section=${section}`);
-        setQuestions(data);
+        const url = `/questions?section_type=${encodeURIComponent(
+          section_type
+        )}`;
+        const { data } = await axios.get(url);
+        if (data) {
+          setQuizId(data.quiz_id);
+          setQuestions(data.questions);
+          setTotalQuestions(data.questions.length * 10);
+        }
       } catch (error) {
-        console.log(error);
+        console.log(error, {});
+        setQuestions([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchQuestions();
-  }, [section]);
+  }, [section_type]);
 
-  const handleAnswer = (answer) => {
+  const handleAnswer = async (answer) => {
+    if (!quizId) {
+      console.error("Cannot save answer - quizId is missing");
+      return;
+    }
     const correctAnswer = currentQuestion.correct_answer.toLowerCase();
     const selected = answer.toLowerCase();
+    const isCorrect = selected === correctAnswer;
     setSelectedAnswer(answer);
-    setIsCorrect(selected === correctAnswer);
+    setIsCorrect(isCorrect);
     setShowExplanation(true);
     console.log("Selected: ", answer);
+
+    if (isCorrect) {
+      setScore((prevScore) => prevScore + 10);
+    }
+
+    try {
+      await axios.post("/save-answer", {
+        employee_id: user._id,
+        quiz_id: quizId,
+        questions_id: currentQuestion._id,
+        selected_answer: answer,
+        is_correct: isCorrect,
+        score: isCorrect ? 10 : 0,
+      });
+    } catch (error) {
+      console.log({
+        message: error.message,
+        response: error.response?.data,
+        config: error.config,
+      });
+    }
   };
 
   const handleNext = () => {
@@ -82,6 +119,11 @@ const Questions = ({ section }) => {
   return (
     <View>
       <View>{renderProgress()}</View>
+      <View style={{ position: "relative" }}>
+        <Text style={styles.points}>
+          {score}/{totalQuestions}
+        </Text>
+      </View>
       <Text style={styles.title}>Question {currentIndex + 1}</Text>
       <Text style={styles.phraseText}>{currentQuestion.text}</Text>
       <View style={styles.buttonContainer}>
@@ -154,6 +196,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 17,
     paddingBottom: 15,
+  },
+
+  points: {
+    position: "absolute",
+    right: 5,
+    bottom: 65,
+    fontSize: 20,
   },
 
   phraseText: {
