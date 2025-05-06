@@ -12,7 +12,7 @@ const QuestionSchema = new Schema(
   {
     text: {
       type: String,
-      required: true,
+      // required: true,
     },
 
     options: {
@@ -54,7 +54,7 @@ const QuestionSchema = new Schema(
 
     explain_if_correct: String,
     explain_if_wrong: String,
-    image_url: String,
+    image: Buffer,
   },
   { _id: true }
 );

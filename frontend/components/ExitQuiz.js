@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: "contain",
     position: "absolute",
-    bottom: 75,
+    bottom: -70,
     left: -7,
   },
 

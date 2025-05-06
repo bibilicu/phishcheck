@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, StyleSheet, Animated, Image } from "react-native";
 import { Button } from "react-native-paper";
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
@@ -63,6 +63,7 @@ const Questions = ({ section_type, user }) => {
           setQuizId(data.quiz_id);
           setQuestions(data.questions);
           setTotalQuestions(data.questions.length * 10);
+          // console.log("Image data:", data.image?.slice(0, 100));
         }
       } catch (error) {
         console.log(error, {});
@@ -150,7 +151,7 @@ const Questions = ({ section_type, user }) => {
   const currentQuestion = questions[currentIndex];
 
   return (
-    <View>
+    <View style={styles.questions}>
       <View>{renderProgress()}</View>
       <Timer ref={timer_interval} onExpire={handleTimerExpire} autoStart />
       <View style={{ position: "relative" }}>
@@ -160,6 +161,17 @@ const Questions = ({ section_type, user }) => {
       </View>
       <Text style={styles.title}>Question {currentIndex + 1}</Text>
       <Text style={styles.phraseText}>{currentQuestion.text}</Text>
+      {currentQuestion.image && (
+        <Image
+          source={{ uri: `data:image/png;base64, ${currentQuestion.image}` }}
+          style={{
+            width: "100%",
+            height: 245,
+            resizeMode: "contain",
+            marginTop: 3,
+          }}
+        />
+      )}
       <View style={styles.buttonContainer}>
         {currentQuestion.options.map((option) => (
           <Button
@@ -186,7 +198,7 @@ const Questions = ({ section_type, user }) => {
         ))}
       </View>
       {showExplanation && (
-        <View style={{ marginTop: 50 }}>
+        <View style={{ marginTop: 15 }}>
           <Text
             style={[
               styles.phrase,
@@ -218,12 +230,16 @@ const Questions = ({ section_type, user }) => {
 export default Questions;
 
 const styles = StyleSheet.create({
+  questions: {
+    flex: 1,
+    marginTop: 70,
+  },
+
   title: {
     fontSize: 23,
     fontWeight: "bold",
     textAlign: "center",
-    paddingBottom: 10,
-    paddingTop: 15,
+    marginTop: 50,
   },
 
   phrase: {
@@ -235,11 +251,11 @@ const styles = StyleSheet.create({
   points: {
     position: "absolute",
     right: 5,
-    bottom: 130,
-    fontSize: 20,
+    bottom: 3,
+    fontSize: 15,
     fontWeight: "bold",
     backgroundColor: "#0F184C",
-    width: "30%",
+    width: "25%",
     padding: 9,
     borderWidth: 2,
     color: "#FFF",
@@ -250,13 +266,13 @@ const styles = StyleSheet.create({
   phraseText: {
     textAlign: "center",
     fontSize: 17,
-    paddingTop: 10,
+    marginVertical: 5,
   },
 
   buttonContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
     paddingTop: 30,
   },
 
@@ -266,9 +282,9 @@ const styles = StyleSheet.create({
   },
 
   progress_bar: {
-    bottom: 30,
     width: "100%",
     height: 15,
+    top: 65,
     borderRadius: 20,
     backgroundColor: "#FFF",
     overflow: "hidden",

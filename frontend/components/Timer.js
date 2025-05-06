@@ -72,11 +72,12 @@ export default Timer;
 
 const styles = StyleSheet.create({
   timer: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "bold",
     backgroundColor: "#FFF",
     width: "18%",
     padding: 7,
+    top: -3,
     borderWidth: 2,
     borderColor: "#0F184C",
   },

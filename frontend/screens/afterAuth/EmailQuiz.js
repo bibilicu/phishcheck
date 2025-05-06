@@ -54,11 +54,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#648FDE",
   },
-
-  points: {
-    position: "absolute",
-    right: 5,
-    bottom: 100,
-    fontSize: 20,
-  },
 });
