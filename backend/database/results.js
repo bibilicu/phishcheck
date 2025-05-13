@@ -36,14 +36,21 @@ const ResultsSchema = new Schema({
     required: true,
   },
 
+  started_at: {
+    type: Date,
+    required: true,
+  },
+
   answered_at: {
     type: Date,
     default: Date.now, // that shows how long it took the player to answer each question
   },
 
-  section_progress: {
-    type: [String],
-    default: [],
+  time_spent: {
+    type: Number,
+    default: function () {
+      return this.answered_at - this.started_at;
+    },
   },
 });
 

@@ -4,12 +4,30 @@ import { Button, Portal, Dialog } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import exit from "../assets/exit.png";
 
-const ExitQuiz = () => {
+const ExitQuiz = ({ quizAttemptId }) => {
   const navigation = useNavigation();
   const [visible, setVisible] = useState(false); // if visible
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
+
+  const handleExit = async () => {
+    try {
+      if (quizAttemptId) {
+        await axios.post("/quiz-attempt/complete", {
+          quiz_attempt_id: quizAttemptId,
+          abandoned: true,
+        });
+      }
+    } catch (error) {
+      console.log("Error: ", error);
+    } finally {
+      hideDialog();
+      console.log("Attempt used.");
+      navigation.navigate("Home");
+    }
+  };
+
   return (
     <View>
       <View style={styles.exitButton}>
@@ -50,10 +68,7 @@ const ExitQuiz = () => {
               buttonColor="#B53636"
               contentStyle={{ paddingVertical: 3, paddingHorizontal: 10 }}
               labelStyle={{ fontSize: 15, color: "#FFF" }}
-              onPress={() => {
-                hideDialog();
-                navigation.navigate("Home");
-              }}
+              onPress={handleExit}
             >
               Yes
             </Button>
@@ -76,7 +91,7 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: "contain",
     position: "absolute",
-    bottom: -70,
+    bottom: -120,
     left: -7,
   },
 

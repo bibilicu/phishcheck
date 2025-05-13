@@ -54,12 +54,12 @@ const Home = () => {
   useEffect(() => {
     const fetch_score = async () => {
       try {
-        const { data } = await axios.get(`/total-score/${state.user._id}`, {
+        const { data } = await axios.get(`/results/total/${state.user._id}`, {
           headers: {
             Authorization: `Bearer ${state.token}`,
           },
         });
-        setTotalScore(data.totalScore);
+        setTotalScore(data.total_score);
       } catch (error) {
         console.error("Failed to fetch score.", error);
       }

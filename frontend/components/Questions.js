@@ -13,6 +13,7 @@ const Questions = ({ section_type, user }) => {
   const [answers, setAnswers] = useState([]);
   const [startTime, setStartTime] = useState(Date.now());
   const [quizId, setQuizId] = useState(null);
+  const [quizAttemptId, setQuizAttemptId] = useState(null);
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -59,11 +60,18 @@ const Questions = ({ section_type, user }) => {
           section_type
         )}`;
         const { data } = await axios.get(url);
+        console.log(data);
         if (data) {
           setQuizId(data.quiz_id);
           setQuestions(data.questions);
           setTotalQuestions(data.questions.length * 10);
-          // console.log("Image data:", data.image?.slice(0, 100));
+
+          const attempts = await axios.post("/quiz-attempt/start", {
+            employee_id: user._id,
+            quiz_id: data.quiz_id,
+          });
+
+          setQuizAttemptId(attempts.data.quiz_attempt_id);
         }
       } catch (error) {
         console.log(error, {});
@@ -101,6 +109,7 @@ const Questions = ({ section_type, user }) => {
         selected_answer: answer,
         is_correct: isCorrect,
         score: isCorrect ? 10 : 0,
+        started_at: startTime,
         answered_at: answer_time,
       },
     ]);
@@ -122,13 +131,22 @@ const Questions = ({ section_type, user }) => {
       try {
         await Promise.all(
           answers.map((a) =>
-            axios.post("/save-answer", {
+            axios.post("/results", {
               employee_id: user._id,
               quiz_id: quizId,
-              ...a,
+              quiz_attempt_id: quizAttemptId,
+              questions_id: a.questions_id,
+              selected_answer: a.selected_answer,
+              started_at: a.started_at,
+              answered_at: a.answered_at,
             })
           )
         );
+
+        await axios.post("/quiz-attempt/complete", {
+          quiz_attempt_id: quizAttemptId,
+          abandoned: false,
+        });
       } catch (error) {
         console.log("Error submitting answers", error);
       }
@@ -141,7 +159,32 @@ const Questions = ({ section_type, user }) => {
     }
   };
 
-  const handleTimerExpire = () => {
+  useEffect(() => {
+    const handleQuizExit = async () => {
+      try {
+        if (quizAttemptId) {
+          await axios.post("/quiz-attempt/complete", {
+            quiz_attempt_id: quizAttemptId,
+            abandoned: true,
+          });
+        }
+      } catch (error) {
+        console.log("Abandon failed: ", error);
+      }
+    };
+
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      handleQuizExit();
+    });
+
+    return unsubscribe;
+  }, [navigation, quizAttemptId]);
+
+  const handleTimerExpire = async () => {
+    await axios.post("/quiz-attempt/complete", {
+      quiz_attempt_id: quizAttemptId,
+      abandoned: true,
+    });
     navigation.navigate("Result", { timer_left: 0, time_spent: 600 });
   };
 
@@ -162,15 +205,28 @@ const Questions = ({ section_type, user }) => {
       <Text style={styles.title}>Question {currentIndex + 1}</Text>
       <Text style={styles.phraseText}>{currentQuestion.text}</Text>
       {currentQuestion.image && (
-        <Image
-          source={{ uri: `data:image/png;base64, ${currentQuestion.image}` }}
-          style={{
-            width: "100%",
-            height: 245,
-            resizeMode: "contain",
-            marginTop: 3,
-          }}
-        />
+        <View>
+          <Image
+            source={{ uri: `data:image/png;base64, ${currentQuestion.image}` }}
+            style={{
+              width: "100%",
+              height: 245,
+              resizeMode: "contain",
+              marginTop: 3,
+            }}
+          />
+          <Text
+            style={{
+              fontWeight: "bold",
+              fontSize: 12,
+              marginTop: 7,
+              textAlign: "center",
+            }}
+          >
+            * Do not copy or manually type any present links. For educational
+            purposes only.
+          </Text>
+        </View>
       )}
       <View style={styles.buttonContainer}>
         {currentQuestion.options.map((option) => (

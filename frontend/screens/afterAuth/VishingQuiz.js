@@ -1,5 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
-import { ProgressBar, MD3Colors } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
 import React, { useEffect, useContext } from "react";
 import ExitQuiz from "../../components/ExitQuiz";
 import Questions from "../../components/Questions";
@@ -40,17 +39,7 @@ const VishingQuiz = () => {
   return (
     <View style={styles.container}>
       <ExitQuiz />
-      <View style={{ position: "relative" }}>
-        <Text style={styles.points}>0/100</Text>
-      </View>
-      <View style={{ position: "relative" }}>
-        <ProgressBar
-          style={styles.progress_bar}
-          progress={0.5}
-          color={MD3Colors}
-        />
-      </View>
-      <Questions></Questions>
+      <Questions section_type="Vishing" user={state.user}></Questions>
     </View>
   );
 };
@@ -63,17 +52,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     backgroundColor: "#648FDE",
-  },
-
-  points: {
-    position: "absolute",
-    right: 5,
-    bottom: 100,
-    fontSize: 20,
-  },
-
-  progress_bar: {
-    position: "absolute",
-    top: -70,
   },
 });

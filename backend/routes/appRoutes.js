@@ -15,6 +15,8 @@ const {
   saveResults,
   getQuizResults,
   getTotalScore,
+  completeQuizAttempt,
+  initializeQuizAttempt,
 } = require("../controllers/questionsController");
 
 // routes
@@ -38,10 +40,14 @@ router.post("/password-reset", passwordReset);
 
 router.get("/questions", getQuestions);
 
-router.post("/save-answer", saveResults);
+router.post("/quiz-attempt/start", initializeQuizAttempt);
 
-router.get("/quiz-score/:employee_id/:quiz_id", getQuizResults);
+router.post("/quiz-attempt/complete", completeQuizAttempt);
 
-router.get("/total-score/:employee_id", getTotalScore);
+router.post("/results", saveResults);
+
+router.get("/results/total/:employee_id", getTotalScore);
+
+router.get("/results/:employee_id/:quiz_id", getQuizResults);
 
 module.exports = router;
