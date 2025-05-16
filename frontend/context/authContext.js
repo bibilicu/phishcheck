@@ -14,7 +14,7 @@ const AuthProvider = ({ children }) => {
     token: "",
   });
 
-  axios.defaults.baseURL = "http://172.20.10.2:5000/api";
+  axios.defaults.baseURL = "https://phishcheck-a9dr.onrender.com/api";
 
   useEffect(() => {
     const loadStorage = async () => {
