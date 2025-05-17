@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/authContext";
 import { Button, Portal, Dialog, Card } from "react-native-paper";
@@ -20,6 +27,8 @@ const Home = () => {
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
+
+  const surveyURL = "https://forms.gle/Fi8tjNQ3rmPRQcrm7";
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -263,6 +272,14 @@ const Home = () => {
           </Card.Content>
         </Card>
       </View>
+      <Text style={styles.phrase_survey}>
+        Your opinion matters into making this quiz better.
+      </Text>
+      <TouchableOpacity onPress={() => Linking.openURL(surveyURL)}>
+        <Text style={styles.link}>
+          Take this short survey to help us improve the game!
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -298,8 +315,8 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: "contain",
     position: "absolute",
-    bottom: 10,
-    left: -7,
+    bottom: -5,
+    left: -3,
   },
 
   picture: {
@@ -318,7 +335,14 @@ const styles = StyleSheet.create({
   cardContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 40,
+    marginTop: 20,
+  },
+
+  phrase_survey: {
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 20,
   },
 
   // buttonContainer: {
@@ -337,5 +361,10 @@ const styles = StyleSheet.create({
   dialogContainer: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  link: {
+    color: "blue",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
