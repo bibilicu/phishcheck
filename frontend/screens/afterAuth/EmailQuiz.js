@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet } from "react-native";
-import { ProgressBar, MD3Colors } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
 import React, { useEffect, useContext } from "react";
 import ExitQuiz from "../../components/ExitQuiz";
 import Questions from "../../components/Questions";
 import { AuthContext } from "../../context/authContext";
+import QuizWrapper from "../../components/QuizWrapper";
 
-const EmailQuiz = () => {
+const EmailQuiz = ({ quizAttemptId }) => {
   const [state, setState, handleLogout] = useContext(AuthContext);
 
   useEffect(() => {
@@ -39,8 +39,10 @@ const EmailQuiz = () => {
 
   return (
     <View style={styles.container}>
-      <ExitQuiz />
-      <Questions section_type="Email" user={state.user}></Questions>
+      <QuizWrapper quizAttemptId={quizAttemptId}>
+        <ExitQuiz />
+        <Questions section_type="Email" user={state.user}></Questions>
+      </QuizWrapper>
     </View>
   );
 };

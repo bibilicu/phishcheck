@@ -64,27 +64,27 @@ export default function App() {
                 <Stack.Screen
                   name="Home"
                   component={Home}
-                  options={{ headerShown: false }}
+                  options={{ headerShown: false, gestureEnabled: false }}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="PhishingQuiz"
                   component={PhishingQuiz}
-                  options={{ headerShown: false }}
+                  options={{ headerShown: false, gestureEnabled: false }}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="EmailQuiz"
                   component={EmailQuiz}
-                  options={{ headerShown: false }}
+                  options={{ headerShown: false, gestureEnabled: false }}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="SmsQuiz"
                   component={SmsQuiz}
-                  options={{ headerShown: false }}
+                  options={{ headerShown: false, gestureEnabled: false }}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="VishingQuiz"
                   component={VishingQuiz}
-                  options={{ headerShown: false }}
+                  options={{ headerShown: false, gestureEnabled: false }}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="Result"

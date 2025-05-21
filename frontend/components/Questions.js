@@ -19,6 +19,7 @@ const Questions = ({ section_type, user }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCorrect, setIsCorrect] = useState(null);
+  const [isDisabledNext, setIsDisabledNext] = useState(false);
   const progress = useRef(new Animated.Value(0)).current;
 
   const timer_interval = useRef(null);
@@ -118,11 +119,13 @@ const Questions = ({ section_type, user }) => {
   };
 
   const handleNext = async () => {
+    setIsDisabledNext(true);
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedAnswer(null);
       setShowExplanation(false);
       setIsCorrect(null);
+      setIsDisabledNext(false);
     } else {
       const timer_left = timer_interval.current?.get_timer_left();
       const time_spent = 600 - timer_left;
@@ -267,6 +270,7 @@ const Questions = ({ section_type, user }) => {
           </Text>
           <View style={styles.buttonContainerNext}>
             <Button
+              disabled={isDisabledNext}
               style={{ borderRadius: 0 }}
               mode="elevated"
               buttonColor="#0F184C"

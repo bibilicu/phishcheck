@@ -5,8 +5,9 @@ import {
   Image,
   TouchableOpacity,
   Linking,
+  BackHandler,
 } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "../../context/authContext";
 import { Button, Portal, Dialog, Card } from "react-native-paper";
 import axios from "axios";
@@ -14,7 +15,7 @@ import cybercrime from "../../assets/cybercrime.png";
 import phishing from "../../assets/phishing.png";
 import smishing from "../../assets/smishing.png";
 import vishing from "../../assets/vishing.png";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import exit from "../../assets/exit.png";
 
 const Home = () => {
@@ -22,6 +23,7 @@ const Home = () => {
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [totalScore, setTotalScore] = useState(null);
+  const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
 
   const navigation = useNavigation();
 
@@ -29,6 +31,29 @@ const Home = () => {
   const hideDialog = () => setVisible(false);
 
   const surveyURL = "https://forms.gle/Fi8tjNQ3rmPRQcrm7";
+
+  useFocusEffect(
+    useCallback(() => {
+      const handleBackPress = () => {
+        setLogoutConfirmVisible(true);
+        return true;
+      };
+
+      const beforeRemove = navigation.addListener("beforeRemove", (e) => {
+        e.preventDefault();
+        setLogoutConfirmVisible(true);
+      });
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        handleBackPress
+      );
+
+      return () => {
+        backHandler.remove();
+        navigation.removeListener("beforeRemove", beforeRemove);
+      };
+    }, [navigation, handleLogout])
+  );
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -99,7 +124,7 @@ const Home = () => {
         >
           <Dialog.Title>Confirm Logout</Dialog.Title>
           <Dialog.Content>
-            <Text style={{ fontSize: 15, marginTop: 10 }}>
+            <Text style={{ fontSize: 15, marginTop: 10, textAlign: "center" }}>
               Are you sure you want to log out?
             </Text>
           </Dialog.Content>
@@ -124,6 +149,49 @@ const Home = () => {
               contentStyle={{ paddingVertical: 3, paddingHorizontal: 10 }}
               labelStyle={{ fontSize: 15, color: "#FFF" }}
               onPress={handleLogoutDialog}
+            >
+              Log Out
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+      {/* for default gesture */}
+      <Portal>
+        <Dialog
+          visible={logoutConfirmVisible}
+          onDismiss={() => setLogoutConfirmVisible(false)}
+          style={styles.dialogContainer}
+        >
+          <Dialog.Title>Confirm Logout</Dialog.Title>
+          <Dialog.Content>
+            <Text style={{ fontSize: 15, marginTop: 10, textAlign: "center" }}>
+              Are you sure you want to log out?
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions style={styles.actionsContainer}>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#0F184C"
+              contentStyle={{
+                paddingVertical: 3,
+                paddingHorizontal: 8,
+              }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={() => setLogoutConfirmVisible(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              style={{ borderRadius: 0 }}
+              mode="elevated"
+              buttonColor="#B53636"
+              contentStyle={{ paddingVertical: 3, paddingHorizontal: 10 }}
+              labelStyle={{ fontSize: 15, color: "#FFF" }}
+              onPress={() => {
+                setLogoutConfirmVisible(false);
+                handleLogoutDialog;
+              }}
             >
               Log Out
             </Button>
@@ -307,16 +375,15 @@ const styles = StyleSheet.create({
   },
 
   exitButton: {
-    position: "relative",
+    position: "absolute",
+    top: 75,
+    left: 10,
   },
 
   exit: {
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
     resizeMode: "contain",
-    position: "absolute",
-    bottom: -5,
-    left: -3,
   },
 
   picture: {

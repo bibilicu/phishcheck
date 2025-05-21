@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React, { useEffect, useContext, useState } from "react";
 import Questions from "../../components/Questions";
 import ExitQuiz from "../../components/ExitQuiz";
 import { AuthContext } from "../../context/authContext";
+import QuizWrapper from "../../components/QuizWrapper";
 
-const PhishingQuiz = () => {
+const PhishingQuiz = ({ quizAttemptId }) => {
   const [state, setState, handleLogout] = useContext(AuthContext);
 
   useEffect(() => {
@@ -38,8 +39,10 @@ const PhishingQuiz = () => {
 
   return (
     <View style={styles.container}>
-      <ExitQuiz />
-      <Questions section_type="Introduction to Phishing" user={state.user} />
+      <QuizWrapper quizAttemptId={quizAttemptId}>
+        <ExitQuiz />
+        <Questions section_type="Introduction to Phishing" user={state.user} />
+      </QuizWrapper>
     </View>
   );
 };

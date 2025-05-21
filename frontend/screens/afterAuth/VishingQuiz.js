@@ -3,8 +3,9 @@ import React, { useEffect, useContext } from "react";
 import ExitQuiz from "../../components/ExitQuiz";
 import Questions from "../../components/Questions";
 import { AuthContext } from "../../context/authContext";
+import QuizWrapper from "../../components/QuizWrapper";
 
-const VishingQuiz = () => {
+const VishingQuiz = ({ quizAttemptId }) => {
   const [state, setState, handleLogout] = useContext(AuthContext);
 
   useEffect(() => {
@@ -38,8 +39,10 @@ const VishingQuiz = () => {
 
   return (
     <View style={styles.container}>
-      <ExitQuiz />
-      <Questions section_type="Vishing" user={state.user}></Questions>
+      <QuizWrapper quizAttemptId={quizAttemptId}>
+        <ExitQuiz />
+        <Questions section_type="Vishing" user={state.user}></Questions>
+      </QuizWrapper>
     </View>
   );
 };
