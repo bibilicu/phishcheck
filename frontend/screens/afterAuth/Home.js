@@ -345,12 +345,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 
-  // buttonContainer: {
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  //   paddingTop: 50,
-  // },
-
   actionsContainer: {
     flexDirection: "row",
     alignItems: "center",

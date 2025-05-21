@@ -83,16 +83,16 @@ export default ExitQuiz;
 
 const styles = StyleSheet.create({
   exitButton: {
-    position: "relative",
+    position: "absolute",
+    top: 75,
+    left: 10,
+    zIndex: 999,
   },
 
   exit: {
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
     resizeMode: "contain",
-    position: "absolute",
-    bottom: -120,
-    left: -7,
   },
 
   dialogContainer: {
