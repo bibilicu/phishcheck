@@ -51,7 +51,7 @@ const Login = ({ navigation }) => {
       <TextInput
         style={styles.input}
         value={email}
-        label="Your business email"
+        label="Email"
         mode="flat"
         autoCapitalize="none"
         keyboardType="email-address"

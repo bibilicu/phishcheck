@@ -94,7 +94,7 @@ const Signup = ({ navigation }) => {
       <TextInput
         style={styles.input}
         value={email}
-        label="Business Email"
+        label="Email"
         mode="flat"
         autoCapitalize="none"
         onChangeText={(text) => {
