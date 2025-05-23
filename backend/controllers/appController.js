@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|yahoo)\.com$/;
+const emailRegex =
+  /^([\w.-]+)@(\[(\d{1,3}\.){3}|(?!hotmail|gmail|googlemail|yahoo|gmx|ymail|outlook|bluewin|protonmail|t\-online|web\.|online\.|aol\.|live\.)(([a-zA-Z\d-]+\.)+))([a-zA-Z]{2,63}|\d{1,3})(\]?)$/;
 
 // breaking passwordRegex down for live feedback
 const passwordRegex = {
@@ -132,8 +133,6 @@ const createAccount = async (req, res) => {
     if (!training_status) {
       error.training_status =
         "Please state the last time you underwent a training.";
-
-      // email format
     }
 
     // password strength
