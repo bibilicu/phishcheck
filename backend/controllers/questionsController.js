@@ -86,6 +86,19 @@ const completeQuizAttempt = async (req, res) => {
       return res.status(404).json({ message: "Attempt not found" });
     }
 
+    // auto-flag - if answers are not registered, then flag abandoned as true
+    if (
+      attempt.correct_count + attempt.wrong_count === 0 ||
+      !attempt.completed_at
+    ) {
+      attempt.abandoned = true;
+    } else {
+      attempt.abandoned = abandoned;
+    }
+
+    attempt.completed_at = completed_at;
+    await attempt.save();
+
     res.json({ message: "Attempt updated: ", attempt });
   } catch (error) {
     console.log(error);
