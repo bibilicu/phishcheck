@@ -1,13 +1,13 @@
 const jwt = require("jsonwebtoken");
 const emailRegex =
-  /^([\w.-]+)@(\[(\d{1,3}\.){3}|(?!hotmail|gmail|googlemail|yahoo|gmx|ymail|outlook|bluewin|protonmail|t\-online|web\.|online\.|aol\.|live\.)(([a-zA-Z\d-]+\.)+))([a-zA-Z]{2,63}|\d{1,3})(\]?)$/;
+  /^([\w.-]+)@((\[(\d{1,3}\.){3})|(([a-zA-Z\d-]+\.)+))([a-zA-Z]{2,63}|\d{1,3})(\]?)$/;
 
 // breaking passwordRegex down for live feedback
 const passwordRegex = {
   upperCase: /[A-Z]/,
   lowerCase: /[a-z]/,
   hasNumber: /[0-9]/,
-  hasSpecialCharacter: /[#?!@$%^&*-]/,
+  hasSpecialCharacter: /[#?!@$%^&*-_+]/,
   hasMinLength: /.{8,}/,
   hasMaxLength: /^.{0,15}$/,
 };

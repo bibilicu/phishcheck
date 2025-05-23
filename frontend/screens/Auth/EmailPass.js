@@ -27,12 +27,12 @@ const EmailPass = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.phrase}>
-        Please introduce your bussiness email to receive the code.
+        Please introduce your email to receive the code.
       </Text>
       <TextInput
         style={styles.input}
         value={email}
-        label="Your business email"
+        label="Your email"
         mode="flat"
         autoCapitalize="none"
         keyboardType="email-address"
