@@ -21,6 +21,7 @@ const QuizAttemptSchema = new Schema({
 
   completed_at: {
     type: Date,
+    default: null,
   },
 
   total_score: {

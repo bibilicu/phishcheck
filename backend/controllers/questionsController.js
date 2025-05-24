@@ -47,6 +47,16 @@ const initializeQuizAttempt = async (req, res) => {
       return res.status(400).json({ Message: "Missing employee or quiz id." });
     }
 
+    // mark previous attempts as abandoned if users close the window in the middle of the quiz
+    await quiz_attempt.updateMany(
+      {
+        employee_id,
+        quiz_id,
+        abandoned: false,
+      },
+      { abandoned: true }
+    );
+
     const attempt_number =
       (await quiz_attempt.countDocuments({
         employee_id,
