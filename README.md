@@ -8,4 +8,4 @@ Here is a short instruction in how to run the application:
 3. If run the command in the terminal, scan the QR code
 4. Now you're in! :)
 
-Remember that it takes roughly 30 seconds for the backend to startup. 
+Remember that it takes roughly 30 seconds for the backend to startup. Good luck! ;)
